@@ -46,6 +46,7 @@ class M2Spasticity : public StateMachine {
     void end();
 
     void hwStateUpdate();
+    bool configureMasterPDOs();
 
     /**
      * Pointers to the relevant states - initialised in init

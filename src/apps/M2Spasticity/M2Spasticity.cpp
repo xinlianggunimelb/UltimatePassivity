@@ -50,7 +50,7 @@ void M2Spasticity::init() {
         logHelper.add(time_running, "Time (s)");
         logHelper.add(robot->getEndEffPositionRef(), "Position");
         logHelper.add(robot->getEndEffVelocityRef(), "Velocity");
-        logHelper.add(robot->getEndEffForceRef(), "Force");
+        logHelper.add(robot->getInteractionForceRef(), "Force");
         logHelper.startLogger();
         UIserver = new FLNLHelper(robot, "192.168.7.2");
     }
@@ -117,4 +117,9 @@ bool M2Spasticity::GoToNextState::check() {
 
     //Otherwise false
     return false;
+}
+
+bool M2Spasticity::configureMasterPDOs() {
+    spdlog::debug("M2Spasticity::configureMasterPDOs()");
+    return robot->configureMasterPDOs();
 }

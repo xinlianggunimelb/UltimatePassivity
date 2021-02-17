@@ -16,7 +16,7 @@
 #include <map>
 
 #include "JointM2.h"
-#include "M2ForceSensor.h"
+#include "FourierForceSensor.h"
 #include "Keyboard.h"
 #include "Joystick.h"
 #include "Robot.h"
@@ -49,10 +49,10 @@ class RobotM2 : public Robot {
     RobotM2();
     ~RobotM2();
 
-    std::vector<M2ForceSensor*> forceSensors; //meaning?
+    std::vector<FourierForceSensor*> forceSensors;
 
-    Keyboard *keyboard; //meaning? declare pointer?
-    Joystick *joystick; //meaning? declare pointer?
+    Keyboard *keyboard;
+    Joystick *joystick;
 
     /**
        * \brief Initialises all joints to position control mode.
@@ -104,7 +104,7 @@ class RobotM2 : public Robot {
 
     /**
     * \brief Apply current configuration as calibration configuration using qcalibration such that:
-    *  q=qcalibration in current configuration.
+    *  q=qcalibration in current configuration; AND request force sensor zeroing.
     */
     void applyCalibration();
 
@@ -153,19 +153,15 @@ class RobotM2 : public Robot {
     VM2 directKinematic(VM2 q);
     VM2 inverseKinematic(VM2 X);
 
-    VM2 getEndEffPosition();
-    VM2 getEndEffVelocity();
-    VM2 getEndEffForce();
-    Eigen::VectorXd& getEndEffPositionRef();
-    Eigen::VectorXd& getEndEffVelocityRef();
-    Eigen::VectorXd& getEndEffForceRef();
-    Eigen::VectorXd& getInteractionForceRef();
+    VM2 getEndEffPosition();                    //!< Return vector containing end-effector position (in m)
+    VM2 getEndEffVelocity();                    //!< Return vector containing end-effector velocity (in m.s-1)
+    VM2 getEndEffForce();                       //!< Return vector containing end-effector (motors) force (in N)
+    Eigen::VectorXd& getEndEffPositionRef();    //!< Return vector reference containing end-effector position (in m)
+    Eigen::VectorXd& getEndEffVelocityRef();    //!< Return vector reference containing end-effector velocity (in m.s-1)
+    Eigen::VectorXd& getEndEffForceRef();       //!< Return vector reference containing end-effector (motors) force (in N)
+    Eigen::VectorXd& getInteractionForceRef();  //!< Return vector reference containing end-effector interaction force (as per force sensors measurement) (in N)
 
     setMovementReturnCode_t setJointPosition(VM2 q);
-    /**
-    * modification done here
-    */
-    // setMovementReturnCode_t setJointVelocity(VM2 q); // original code
     setMovementReturnCode_t setJointVelocity(VM2 dq);
     setMovementReturnCode_t setJointTorque(VM2 tau);
     setMovementReturnCode_t setEndEffPosition(VM2 X);
