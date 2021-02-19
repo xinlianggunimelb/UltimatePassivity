@@ -113,12 +113,12 @@ void M2ArcCircle::entryCode(void) {
     //radius =
     //centerPt =
     theta_s = 180.0;
-    dTheta_t = 10;
-    radius = 0.4;
-    centerPt[0] = 0.4;
+    dTheta_t = 90;
+    radius = 0.3;
+    centerPt[0] = 0.3;
     centerPt[1] = .0;
 
-    thetaRange=90;
+    thetaRange=80;
     ddTheta=200;
 
     //Arc starting point
@@ -126,11 +126,19 @@ void M2ArcCircle::entryCode(void) {
     theta = theta_s;
 	startingPt[0]=centerPt[0]+radius*cos(theta_s*M_PI/180.);
 	startingPt[1]=centerPt[1]+radius*sin(theta_s*M_PI/180.);
+	/*
 	//Initialise profile timing
 	double t_init = 1.0; //waiting time before movement starts (need to be at least 0.8 because drives have a lag...)
 	double t_end_accel = t_init + dTheta_t/ddTheta; //acceleration phase to reach constant angular velociy
 	double t_end_cstt = t_end_accel + (thetaRange-(dTheta_t*dTheta_t)/ddTheta)/dTheta_t; //constant angular velocity phase: ensure total range is theta_range
 	double t_end_decel = t_end_cstt + dTheta_t/ddTheta; //decelaration phase
+	*/
+	//Initialise profile timing
+	t_init = 1.0; //waiting time before movement starts (need to be at least 0.8 because drives have a lag...)
+	t_end_accel = t_init + dTheta_t/ddTheta; //acceleration phase to reach constant angular velociy
+	t_end_cstt = t_end_accel + (thetaRange-(dTheta_t*dTheta_t)/ddTheta)/dTheta_t; //constant angular velocity phase: ensure total range is theta_range
+	t_end_decel = t_end_cstt + dTheta_t/ddTheta; //decelaration phase
+
 
 	//Define sign of movement based on starting angle
 	sign=1;

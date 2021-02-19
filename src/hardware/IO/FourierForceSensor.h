@@ -62,7 +62,7 @@ class FourierForceSensor : public InputDevice {
 
   private:
     int sensorNodeID;
-    double scaleFactor;
+    double scaleFactor=0.06;
     RPDO *rpdo;
     INTEGER32 rawData[2] = {0};
     double forceReading;              //!< Store latest updated sensor reading (in N)

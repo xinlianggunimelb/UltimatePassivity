@@ -12,7 +12,7 @@ bool FourierForceSensor::configureMasterPDOs() {
     void *dataEntry[2] = {(void *)&rawData[0],
                            (void *)&rawData[1],};
 
-    rpdo = new RPDO(0x190+sensorNodeID, 0xff, dataEntry, dataSize, 2);
+    rpdo = new RPDO(0x180+sensorNodeID, 0xff, dataEntry, dataSize, 2);
 
     return true;
 }
@@ -28,6 +28,8 @@ bool FourierForceSensor::calibrate(double calib_time) {
         calibrationTime = calib_time;
     }
 
+
+    /**
     //Check error message from sensor first
     std::stringstream sstream;
     char *returnMessage;
@@ -41,8 +43,10 @@ bool FourierForceSensor::calibrate(double calib_time) {
         spdlog::error("[FourierForceSensor::calibrate]: Force Sensor {} error occured during zeroing", sensorNodeID);
         return false;
     }
+    **/
+
     //Perform zeroing
-    else{
+   // else{
         sleep(1.5); // this is required because after calibration command, sensor values do not get update around 1.2 seconds
         time0 = std::chrono::steady_clock::now();
         // after sending calibrate command, for some reason sensor value doesn't go back exactly to 1500.
@@ -57,7 +61,7 @@ bool FourierForceSensor::calibrate(double calib_time) {
         calibrated = true;
         spdlog::debug("[FourierForceSensor::calibrate]: Force Sensor {} succesfully zeroed with offset {}.", sensorNodeID, calibrationOffset);
         return true;
-    }
+   // }
 }
 
 double FourierForceSensor::getForce() {
@@ -67,6 +71,7 @@ double FourierForceSensor::getForce() {
 
 double FourierForceSensor::sensorValueToNewton(int sensorValue) {
 
-    return (sensorValue - calibrationOffset) * scaleFactor;
+    //return (sensorValue - calibrationOffset) * scaleFactor;
+    return (sensorValue - calibrationOffset) * 0.06;
 }
 
