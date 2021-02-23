@@ -71,7 +71,8 @@ double FourierForceSensor::getForce() {
 
 double FourierForceSensor::sensorValueToNewton(int sensorValue) {
 
-    //return (sensorValue - calibrationOffset) * scaleFactor;
-    return (sensorValue - calibrationOffset) * 0.06;
+    scaleFactor=0.0512;
+    //std::cout << scaleFactor << "  ";
+    return (sensorValue - calibrationOffset) * scaleFactor;
 }
 

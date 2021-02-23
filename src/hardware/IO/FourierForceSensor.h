@@ -25,7 +25,7 @@ class FourierForceSensor : public InputDevice {
      * Construct a new FourierForceSensor object
      *
      */
-    FourierForceSensor(int sensor_can_node_ID, double scale_factor = 1.0, double calib_time = 2.0);
+    FourierForceSensor(int sensor_can_node_ID, double scale_factor = 0.06, double calib_time = 2.0);
 
     /**
      * Configure Master (controller) side PDO for force sensor reading.
@@ -62,7 +62,7 @@ class FourierForceSensor : public InputDevice {
 
   private:
     int sensorNodeID;
-    double scaleFactor=0.06;
+    double scaleFactor;
     RPDO *rpdo;
     INTEGER32 rawData[2] = {0};
     double forceReading;              //!< Store latest updated sensor reading (in N)

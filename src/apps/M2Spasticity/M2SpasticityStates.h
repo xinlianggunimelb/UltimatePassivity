@@ -248,6 +248,40 @@ class M2Recording : public M2TimedState {
     int RecordingPoint;
     VM2 PositionRecording;
     VM2 PositionTesting[10000];
+
+    int n;
+    VM2 centroid;
+    double Mxx;
+    double Myy;
+    double Mxy;
+    double Mxz;
+    double Myz;
+    double Mzz;
+    double Xi;
+    double Yi;
+    double Zi;
+    double Mz;
+    double Cov_xy;
+    double Mxz2;
+    double Myz2;
+    double A2;
+    double A1;
+    double A0;
+    double A22;
+    double epsilon;
+    double ynew;
+    int IterMax;
+    double xnew;
+    double yold;
+    double Dy;
+    double xold;
+    double DET;
+    VM2 Center;
+    double radius;
+    double start_angle;
+    VM2 StartPt;
+    //VM2 testing;
+
 };
 
 

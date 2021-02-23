@@ -1,5 +1,8 @@
 #include "M2SpasticityStates.h"
 #include "M2Spasticity.h"
+#include <stdlib.h>
+//#include <bits/stdc++.h>
+//#include <complex>
 
 #define OWNER ((M2Spasticity *)owner)
 
@@ -210,9 +213,10 @@ void M2ArcCircle::duringCode(void) {
 
 /**
 * set both 0.1 to test joint movement
+* set both 0 to calibrate force sensors
 */
-//dX[0]=0.1;
-//dX[1]=0.1;
+//dX[0]=0;
+//dX[1]=0;
 
     //Apply
     robot->setEndEffVelocity(dX);
@@ -260,7 +264,118 @@ void M2Recording::exitCode(void) {
 	center point
 	*/
 
-    robot->setEndEffForceWithCompensation(VM2::Zero());
+
+	/// Fit a circle on a data point cloud using Pratt method
+    /// V.Pratt, "Direct least-squares fitting of algebraic surfaces",
+    /// Computer Graphics, Vol. 21, pages 145-152 (1987)
+    ///
+    /// Inspired from Matlab function CircleFitByPratt by Nikolai Chernov
+//    MovementParameters CircleFitPratt(List<Vector2> pts)
+
+        n = RecordingPoint-1;// number of data points
+        //Debug.Log("Number of points:" + n.ToString());
+        //Find centroid of data set
+        //centroid = (0,0);
+        for (int i=0; i<n; i++)
+        {
+            centroid += PositionTesting[i];
+            //std::cout << PositionTesting[i].transpose() << " \n ";
+        }
+        centroid = centroid/n;
+        //std::cout << centroid.transpose() << "  ";
+
+        //computing moments(note: all moments will be normalised, i.e.divided by n)
+        Mxx = 0; Myy = 0; Mxy = 0; Mxz = 0; Myz = 0; Mzz = 0;
+        for (int j = 0; j < n; j++)
+        {
+            // centering data
+            /*
+            testing = PositionTesting[j] - centroid;
+            //Xi = testing[0];
+            //Yi = testing[1];
+            */
+            Xi = PositionTesting[j][0] - centroid[0];
+            //std::cout << PositionTesting[j][1] << " \n ";
+            Yi = PositionTesting[j][1] - centroid[1];
+            Zi = Xi * Xi + Yi * Yi;
+            Mxy = Mxy + Xi * Yi;
+            Mxx = Mxx + Xi * Xi;
+            Myy = Myy + Yi * Yi;
+            Mxz = Mxz + Xi * Zi;
+            Myz = Myz + Yi * Zi;
+            Mzz = Mzz + Zi * Zi;
+        }
+
+        Mxx = Mxx / n;
+        Myy = Myy / n;
+        Mxy = Mxy / n;
+        Mxz = Mxz / n;
+        Myz = Myz / n;
+        Mzz = Mzz / n;
+
+        // computing the coefficients of the characteristic polynomial
+        Mz = Mxx + Myy;
+        Cov_xy = Mxx * Myy - Mxy * Mxy;
+        Mxz2 = Mxz * Mxz;
+        Myz2 = Myz * Myz;
+        A2 = 4 * Cov_xy - 3 * Mz * Mz - Mzz;
+        A1 = Mzz * Mz + 4 * Cov_xy * Mz - Mxz2 - Myz2 - Mz * Mz * Mz;
+        A0 = Mxz2 * Myy + Myz2 * Mxx - Mzz * Cov_xy - 2 * Mxz * Myz * Mxy + Mz * Mz * Cov_xy;
+        A22 = A2 + A2;
+        epsilon = 1e-12;
+        ynew = 1e+20;
+        IterMax = 20;
+        xnew = 0;
+
+        // Newton's method starting at x=0
+        for (int iter = 1; iter <= IterMax; iter++)
+        {
+            yold = ynew;
+            ynew = A0 + xnew * (A1 + xnew * (A2 + 4 * xnew * xnew));
+            if (abs(ynew) > abs(yold))
+            {
+                //Debug.Log("Newton-Pratt goes wrong direction: |ynew| > |yold|");
+                xnew = 0;
+                break;
+            }
+            Dy = A1 + xnew * (A22 + 16 * xnew * xnew);
+            xold = xnew;
+            xnew = xold - ynew / Dy;
+            if (abs((xnew - xold) / xnew) < epsilon)
+                break;
+            if (iter >= IterMax)
+            {
+                //Debug.Log("Newton-Pratt will not converge");
+                xnew = 0;
+            }
+            if (xnew < 0)
+            {
+                //Debug.Log("Newton-Pratt negative root:  x=" + xnew.ToString());
+                xnew = 0;
+            }
+        }
+
+        //computing the circle parameters
+        DET = xnew * xnew - xnew * Mz + Cov_xy;
+        Center[0] = (Mxz * (Myy - xnew) - Myz * Mxy) / DET / 2 ;
+        Center[1] = (Myz * (Mxx - xnew) - Mxz * Mxy) / DET / 2 ;
+        radius = sqrt(Center[0]*Center[0] + Center[1]*Center[1] + Mz + 2 * xnew);
+        std::cout << "Radius is " << radius << " meters \n";
+        Center += centroid;//Shift to actual center
+        std::cout << "Center point is ["<< Center.transpose() << "] \n";
+
+        // Start angle defined with 0 along positive x axis, 180 along negative x
+        // the sign defines the direction of rotation
+        start_angle = (atan2(PositionTesting[0][1] - Center[1], PositionTesting[0][0] - Center[0]) * 180.0 / M_PI);
+        start_angle = (start_angle < -90)? 360 - abs(start_angle): start_angle;// Assume this is an indirect rotation(bottom left quadrant)
+        std::cout << "Start angle is "<< start_angle << " degree \n";
+        StartPt[0] = Center[0] + radius * cos(start_angle * M_PI / 180.0);
+        StartPt[1] = Center[1] + radius * sin(start_angle * M_PI / 180.0);
+        std::cout << "Start point is ["<< StartPt.transpose() << "] \n";
+        //Debug.Log("Xc=(" + Center.x.ToString() + "," + Center.y.ToString() + ") => (" + StartPt.x.ToString() + "," + StartPt.y.ToString() + ") r =" + radius.ToString() + " angle=" + start_angle.ToString());
+        //return new MovementParameters(start_angle, StartPt, radius, true);
+
+        robot->setEndEffForceWithCompensation(VM2::Zero());
 }
 
 
