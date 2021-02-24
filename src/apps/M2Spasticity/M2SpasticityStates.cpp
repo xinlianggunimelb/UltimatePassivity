@@ -488,7 +488,7 @@ void M2ArcCircleReturn::entryCode(void) {
     //Arc Return starting point
     finished = false;
     thetaReturn = theta_s - sign*thetaRange;
-    //std::cout << thetaReturn << " \n";
+    std::cout << "Current angle is " << thetaReturn << " degree \n";
     startingReturnPt = robot->getEndEffPosition();
     //std::cout << startingReturnPt.transpose() << " \n";
 	//startingPt[0]=centerPt[0]+radius*cos(theta_s*M_PI/180.);
