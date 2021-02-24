@@ -11,6 +11,7 @@ M2Spasticity::M2Spasticity() {
     recordingState = new M2Recording(this, robot);
     testingState = new M2ArcCircle(this, robot);
     minJerkState = new M2MinJerkPosition(this, robot);
+    testingReturnState = new M2ArcCircleReturn(this, robot);
 
     endCalib = new EndCalib(this);
     goToNextState = new GoToNextState(this);
@@ -23,11 +24,12 @@ M2Spasticity::M2Spasticity() {
      *
      */
      NewTransition(calibState, endCalib, standbyState);
-      NewTransition(recordingState, goToNextState, standbyState);
-      NewTransition(standbyState, goToNextState, recordingState);
-     // NewTransition(recordingState, goToNextState, minJerkState);
-     // NewTransition(minJerkState, goToNextState, testingState);
-     // NewTransition(testingState, goToNextState, standbyState);
+     // NewTransition(recordingState, goToNextState, standbyState);
+     NewTransition(standbyState, goToNextState, recordingState);
+     NewTransition(recordingState, goToNextState, minJerkState);
+     NewTransition(minJerkState, goToNextState, testingState);
+     NewTransition(testingState, goToNextState, testingReturnState);
+     NewTransition(testingReturnState, goToNextState, minJerkState);
 
     //Initialize the state machine with first state of the designed state machine, using baseclass function.
     StateMachine::initialize(calibState);

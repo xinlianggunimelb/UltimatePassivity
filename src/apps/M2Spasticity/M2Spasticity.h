@@ -57,6 +57,7 @@ class M2Spasticity : public StateMachine {
     M2Recording *recordingState;
     M2ArcCircle *testingState;
     M2MinJerkPosition* minJerkState;
+    M2ArcCircleReturn *testingReturnState;
 
    protected:
     RobotM2 *robot;         /*!< Pointer to the Robot*/

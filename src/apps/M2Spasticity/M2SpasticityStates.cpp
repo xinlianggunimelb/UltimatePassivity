@@ -6,6 +6,12 @@
 
 #define OWNER ((M2Spasticity *)owner)
 
+
+VM2 global_center_point;
+VM2 global_start_point;
+double global_radius;
+double global_start_angle;
+
 double timeval_to_sec(struct timespec *ts)
 {
     return (double)(ts->tv_sec + ts->tv_nsec / 1000000000.0);
@@ -115,11 +121,20 @@ void M2ArcCircle::entryCode(void) {
     //dTheta_t =
     //radius =
     //centerPt =
-    theta_s = 180.0;
+
+    /** testing use only
+    * theta_s = 180.0;
+    * dTheta_t = 90;
+    * radius = 0.3;
+    * centerPt[0] = 0.3;
+    * centerPt[1] = .0;
+    */
+
+    theta_s = global_start_angle;
+    radius = global_radius;
+    centerPt = global_center_point;
+
     dTheta_t = 90;
-    radius = 0.3;
-    centerPt[0] = 0.3;
-    centerPt[1] = .0;
 
     thetaRange=80;
     ddTheta=200;
@@ -142,11 +157,11 @@ void M2ArcCircle::entryCode(void) {
 	t_end_cstt = t_end_accel + (thetaRange-(dTheta_t*dTheta_t)/ddTheta)/dTheta_t; //constant angular velocity phase: ensure total range is theta_range
 	t_end_decel = t_end_cstt + dTheta_t/ddTheta; //decelaration phase
 
-
 	//Define sign of movement based on starting angle
 	sign=1;
-	if(theta_s>90)
+	if(theta_s>90){
 		sign=-1;
+		}
 }
 void M2ArcCircle::duringCode(void) {
 
@@ -375,6 +390,11 @@ void M2Recording::exitCode(void) {
         //Debug.Log("Xc=(" + Center.x.ToString() + "," + Center.y.ToString() + ") => (" + StartPt.x.ToString() + "," + StartPt.y.ToString() + ") r =" + radius.ToString() + " angle=" + start_angle.ToString());
         //return new MovementParameters(start_angle, StartPt, radius, true);
 
+        global_center_point = Center;
+        global_start_point = StartPt;
+        global_radius = radius;
+        global_start_angle = start_angle;
+
         robot->setEndEffForceWithCompensation(VM2::Zero());
 }
 
@@ -388,8 +408,10 @@ void M2MinJerkPosition::entryCode(void) {
     TrajPtIdx=0;
     startTime=elapsedTime;
     Xi=robot->getEndEffPosition();
-    Xf=TrajPt[TrajPtIdx];
-    T=TrajTime[TrajPtIdx];
+    //Xf=TrajPt[TrajPtIdx];
+    Xf = global_start_point;
+    //T=TrajTime[TrajPtIdx];
+    T=5;
     k_i=1.;
 }
 void M2MinJerkPosition::duringCode(void) {
@@ -400,8 +422,13 @@ void M2MinJerkPosition::duringCode(void) {
     //Apply position control
     robot->setEndEffVelocity(dXd+k_i*(Xd-robot->getEndEffPosition()));
 
-
     //Have we reached a point?
+    if (status>=1. && iterations%1000==1){
+    //robot->setJointVelocity(VM2::Zero());
+    std::cout << "Ready... \n";
+    }
+
+    /*
     if(status>=1.) {
         //Go to next point
         TrajPtIdx++;
@@ -416,8 +443,8 @@ void M2MinJerkPosition::duringCode(void) {
         startTime=elapsedTime;
     }
 
-
-   /* //Display progression
+   /*
+   //Display progression
     if(iterations%100==1) {
         std::cout << "Progress (Point "<< TrajPtIdx << ") |";
         for(int i=0; i<round(status*50.); i++)
@@ -430,8 +457,126 @@ void M2MinJerkPosition::duringCode(void) {
     }*/
 }
 void M2MinJerkPosition::exitCode(void) {
+    // std::cout << "Ready... \n";
     robot->setJointVelocity(VM2::Zero());
 }
 
 
+void M2ArcCircleReturn::entryCode(void) {
+    robot->initVelocityControl();
+    //Initialise values (from network command) and sanity check
+    //theta_s =
+    //dTheta_t =
+    //radius =
+    //centerPt =
 
+    theta_s = global_start_angle;
+    radius = global_radius;
+    centerPt = global_center_point;
+
+    dTheta_t = 6; //Arc Return Velocity
+
+    thetaRange=80;
+    ddTheta=200;
+
+    //Define sign of movement based on starting angle
+	sign=-1;
+	if(theta_s>90){
+		sign=1;
+		}
+
+    //Arc Return starting point
+    finished = false;
+    thetaReturn = theta_s - sign*thetaRange;
+    //std::cout << thetaReturn << " \n";
+    startingReturnPt = robot->getEndEffPosition();
+    //std::cout << startingReturnPt.transpose() << " \n";
+	//startingPt[0]=centerPt[0]+radius*cos(theta_s*M_PI/180.);
+	//startingPt[1]=centerPt[1]+radius*sin(theta_s*M_PI/180.);
+
+	//Initialise profile timing
+	t_init = 1.0; //waiting time before movement starts (need to be at least 0.8 because drives have a lag...)
+	t_end_accel = t_init + dTheta_t/ddTheta; //acceleration phase to reach constant angular velociy
+	t_end_cstt = t_end_accel + (thetaRange-(dTheta_t*dTheta_t)/ddTheta)/dTheta_t; //constant angular velocity phase: ensure total range is theta_range
+	t_end_decel = t_end_cstt + dTheta_t/ddTheta; //decelaration phase
+	//std::cout << t_end_accel << " \n";
+	//std::cout << t_end_cstt << " \n";
+	//std::cout << t_end_decel << " \n";
+
+}
+void M2ArcCircleReturn::duringCode(void) {
+
+    //Define velocity profile phase based on timing
+    double dThetaReturn = 0;
+    VM2 dXd, Xd, dX;
+    double t = elapsedTime;
+    if(t<t_init)
+    {
+        dThetaReturn=0;
+    }
+    else
+    {
+        if(t<t_end_accel)
+        {
+            //Acceleration phase
+            dThetaReturn=(t-t_init)*ddTheta;
+        }
+        else
+        {
+            if(t<=t_end_cstt)
+            {
+                //Constant phase
+                dThetaReturn=dTheta_t;
+            }
+            else
+            {
+                if(t<t_end_decel)
+                {
+                    //Deceleration phase
+                    dThetaReturn=dTheta_t-(t-t_end_cstt)*ddTheta;
+                }
+                else
+                {
+                    //Profile finished
+                    dThetaReturn=0;
+                    finished = true;
+                }
+            }
+        }
+    }
+    dThetaReturn*=sign;
+    //std::cout << dThetaReturn << " \n";
+
+    //Integrate to keep mobilisation angle
+    thetaReturn += dThetaReturn*dt;
+    //std::cout << thetaReturn << " \n";
+
+    //Transform to end effector space
+    //desired velocity
+    dXd[0] = -radius*sin(thetaReturn*M_PI/180.)*dThetaReturn*M_PI/180.;
+    dXd[1] = radius*cos(thetaReturn*M_PI/180.)*dThetaReturn*M_PI/180.;
+    // dXd[0] = 0.1;
+    // dXd[1] = 0.1;
+    //desired position
+    Xd[0] = centerPt[0]+radius*cos(thetaReturn*M_PI/180.);
+    Xd[1] = centerPt[1]+radius*sin(thetaReturn*M_PI/180.);
+    //PI in velocity-position
+    /**
+    *what does K mean?
+    *what does the below formula mean?
+    */
+    float K=5.0;
+    // dX=dXd;
+    dX = dXd + K*(Xd-robot->getEndEffPosition());
+
+    //Apply
+    robot->setEndEffVelocity(dX);
+
+    if(iterations%100==1) {
+        std::cout << dXd.transpose() << "  ";
+        robot->printStatus();
+    }
+}
+void M2ArcCircleReturn::exitCode(void) {
+    robot->setEndEffVelocity(VM2::Zero());
+}

@@ -20,6 +20,16 @@
 using namespace std;
 
 /**
+* declare global variables for each individual
+
+VM2 global_center_point;
+VM2 global_start_point;
+double global_radius;
+double global_start_angle;
+*/
+
+
+/**
  * \brief Conversion from a timespec structure to seconds (double)
  *
  */
@@ -216,8 +226,10 @@ class M2MinJerkPosition: public M2TimedState {
     static const unsigned int TrajNbPts=4;
     unsigned int TrajPtIdx=0;
     double startTime;
-    VM2 TrajPt[TrajNbPts]={VM2(0.1, 0.1), VM2(0.3, 0.3), VM2(0.4, 0.1), VM2(0.4, 0.4)};
-    double TrajTime[TrajNbPts]={5, 3, 1.0, 2.0};
+    VM2 TrajPt;
+    //VM2 TrajPt[TrajNbPts]={VM2(0.1, 0.1), VM2(0.3, 0.3), VM2(0.4, 0.1), VM2(0.4, 0.4)};
+    double TrajTime;
+    //double TrajTime[TrajNbPts]={5, 3, 1.0, 2.0};
     VM2 Xi, Xf;
     double T;
     float k_i=1.; //Integral gain
@@ -251,38 +263,47 @@ class M2Recording : public M2TimedState {
 
     int n;
     VM2 centroid;
-    double Mxx;
-    double Myy;
-    double Mxy;
-    double Mxz;
-    double Myz;
-    double Mzz;
-    double Xi;
-    double Yi;
-    double Zi;
-    double Mz;
-    double Cov_xy;
-    double Mxz2;
-    double Myz2;
-    double A2;
-    double A1;
-    double A0;
-    double A22;
+    double Mxx, Myy, Mxy, Mxz, Myz, Mzz;
+    double Xi, Yi, Zi;
+    double Mz, Cov_xy, Mxz2, Myz2;
+    double A2, A1, A0, A22;
     double epsilon;
-    double ynew;
+    double ynew, yold, xnew, xold;
     int IterMax;
-    double xnew;
-    double yold;
-    double Dy;
-    double xold;
-    double DET;
+    double Dy, DET;
     VM2 Center;
     double radius;
     double start_angle;
     VM2 StartPt;
     //VM2 testing;
-
 };
 
+
+/**
+ * \brief End-effector arc circle trajectory (position over velocity) back to starting point
+ *
+ */
+class M2ArcCircleReturn : public M2TimedState {
+
+   public:
+    M2ArcCircleReturn(StateMachine *m, RobotM2 *M2, const char *name = "M2 Arc Circle Return"):M2TimedState(m, M2, name){};
+
+    void entryCode(void);
+    void duringCode(void);
+    void exitCode(void);
+
+   private:
+    bool finished;
+    double radius;
+    double theta_s;
+    double thetaRange;
+    double thetaReturn;
+    int sign;
+    double dTheta_t; //Movement target velocity (max of profile) in deg.s-1
+    double ddTheta=200; //in deg.s-2
+    VM2 centerPt;
+    VM2 startingReturnPt;
+    double t_init, t_end_accel, t_end_cstt, t_end_decel;
+};
 
 #endif
