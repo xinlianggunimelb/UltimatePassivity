@@ -181,6 +181,7 @@ class M2ArcCircle : public M2TimedState {
     VM2 centerPt;
     VM2 startingPt;
     double t_init, t_end_accel, t_end_cstt, t_end_decel;
+    double ang_vel[9] = {10, 20, 30, 40, 50, 60, 70, 80, 90};
 };
 
 /**
@@ -296,7 +297,8 @@ class M2ArcCircleReturn : public M2TimedState {
     bool finished;
     double radius;
     double theta_s;
-    double thetaRange;
+    double startReturnAngle;
+    double thetaReturnRange;
     double thetaReturn;
     int sign;
     double dTheta_t; //Movement target velocity (max of profile) in deg.s-1

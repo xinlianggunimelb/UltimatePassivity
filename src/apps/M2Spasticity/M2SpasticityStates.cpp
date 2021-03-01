@@ -1,7 +1,7 @@
 #include "M2SpasticityStates.h"
 #include "M2Spasticity.h"
 #include <stdlib.h>
-//#include <bits/stdc++.h>
+#include <bits/stdc++.h>
 //#include <complex>
 
 #define OWNER ((M2Spasticity *)owner)
@@ -11,6 +11,9 @@ VM2 global_center_point;
 VM2 global_start_point;
 double global_radius;
 double global_start_angle;
+int test_loop = 0;
+int vel_sequence[9];
+
 
 double timeval_to_sec(struct timespec *ts)
 {
@@ -134,7 +137,18 @@ void M2ArcCircle::entryCode(void) {
     radius = global_radius;
     centerPt = global_center_point;
 
-    dTheta_t = 90;
+    /*
+    int vel_index = rand()%9; //generate a random number between 0 and 9
+    dTheta_t = ang_vel[vel_index];
+    std::cout << "Velocity is "<< dTheta_t << " degree/second \n";
+    */
+
+    for(int i=0; i<9; i++) {std::cout << "Velocity (overview) is " << ang_vel[vel_sequence[i]] << " degree/second \n";}
+
+    dTheta_t = ang_vel[vel_sequence[test_loop]];
+    test_loop ++;
+    if (test_loop>=9){test_loop=0;} //go to the first velocity
+    std::cout << "Velocity is "<< dTheta_t << " degree/second \n";
 
     thetaRange=80;
     ddTheta=200;
@@ -395,7 +409,15 @@ void M2Recording::exitCode(void) {
         global_radius = radius;
         global_start_angle = start_angle;
 
-        robot->setEndEffForceWithCompensation(VM2::Zero());
+     // order velocity
+     vector<int> vel_index_num={0,1,2,3,4,5,6,7,8};
+     srand(time(0));
+     random_shuffle(vel_index_num.begin(), vel_index_num.end());
+     for(int i=0; i<9; i++) {vel_sequence[i] = vel_index_num[i];}
+     for(int i=0; i<9; i++) {std::cout << "Velocity sequence is " << vel_sequence[i] << " \n";}
+     //int vel_sequence = vel_index_num;
+
+    robot->setEndEffForceWithCompensation(VM2::Zero());
 }
 
 
@@ -423,7 +445,7 @@ void M2MinJerkPosition::duringCode(void) {
     robot->setEndEffVelocity(dXd+k_i*(Xd-robot->getEndEffPosition()));
 
     //Have we reached a point?
-    if (status>=1. && iterations%1000==1){
+    if (status>=1. && iterations%100==1){
     //robot->setJointVelocity(VM2::Zero());
     std::cout << "Ready... \n";
     }
@@ -475,34 +497,35 @@ void M2ArcCircleReturn::entryCode(void) {
     centerPt = global_center_point;
 
     dTheta_t = 6; //Arc Return Velocity
-
-    thetaRange=80;
     ddTheta=200;
-
-    //Define sign of movement based on starting angle
-	sign=-1;
-	if(theta_s>90){
-		sign=1;
-		}
 
     //Arc Return starting point
     finished = false;
-    thetaReturn = theta_s - sign*thetaRange;
-    std::cout << "Current angle is " << thetaReturn << " degree \n";
+
     startingReturnPt = robot->getEndEffPosition();
     //std::cout << startingReturnPt.transpose() << " \n";
+    startReturnAngle = (atan2(startingReturnPt[1] - centerPt[1], startingReturnPt[0] - centerPt[0]) * 180.0 / M_PI);
+    thetaReturnRange = abs(startReturnAngle-theta_s);
+    thetaReturn = startReturnAngle;
+    std::cout << "Current angle is " << thetaReturn << " degree \n";
+
 	//startingPt[0]=centerPt[0]+radius*cos(theta_s*M_PI/180.);
 	//startingPt[1]=centerPt[1]+radius*sin(theta_s*M_PI/180.);
 
 	//Initialise profile timing
 	t_init = 1.0; //waiting time before movement starts (need to be at least 0.8 because drives have a lag...)
 	t_end_accel = t_init + dTheta_t/ddTheta; //acceleration phase to reach constant angular velociy
-	t_end_cstt = t_end_accel + (thetaRange-(dTheta_t*dTheta_t)/ddTheta)/dTheta_t; //constant angular velocity phase: ensure total range is theta_range
+	t_end_cstt = t_end_accel + (thetaReturnRange-(dTheta_t*dTheta_t)/ddTheta)/dTheta_t; //constant angular velocity phase: ensure total range is theta_range
 	t_end_decel = t_end_cstt + dTheta_t/ddTheta; //decelaration phase
 	//std::cout << t_end_accel << " \n";
 	//std::cout << t_end_cstt << " \n";
 	//std::cout << t_end_decel << " \n";
 
+	//Define sign of movement based on starting angle
+	sign=-1;
+	if(theta_s>90){
+		sign=1;
+		}
 }
 void M2ArcCircleReturn::duringCode(void) {
 
