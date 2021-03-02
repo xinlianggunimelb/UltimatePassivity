@@ -153,6 +153,8 @@ class M2Transparent : public M2TimedState {
     void entryCode(void);
     void duringCode(void);
     void exitCode(void);
+
+    Eigen::Matrix2d ForceP;
 };
 
 
@@ -252,6 +254,7 @@ class M2Recording : public M2TimedState {
     void exitCode(void);
 
    private:
+    Eigen::Matrix2d ForceP;
     unsigned int nb_samples=10000;
     int new_value;
 

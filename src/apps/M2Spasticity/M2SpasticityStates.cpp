@@ -97,6 +97,8 @@ void M2Calib::exitCode(void) {
 
 void M2Transparent::entryCode(void) {
     robot->initTorqueControl();
+    ForceP(0,0) = 1.3;
+    ForceP(1,1) = 1.4;
 }
 void M2Transparent::duringCode(void) {
 
@@ -105,15 +107,25 @@ void M2Transparent::duringCode(void) {
     double t=elapsedTime>settling_time?1.0:elapsedTime/settling_time;
 
     //Apply corresponding force
-    robot->setEndEffForceWithCompensation(VM2::Zero(), true);
+    VM2 f_m = robot->getInteractionForceRef();
+    robot->setEndEffForce(ForceP*f_m);
 
     if(iterations%100==1) {
         robot->printStatus();
-     //   robot->printJointStatus();
     }
+    /*if(robot->keyboard->getS()) {
+        P(1,1)-=0.1;
+        std::cout << P <<std::endl;
+        std::cout << P*f_m <<std::endl;
+    }
+    if(robot->keyboard->getW()) {
+        P(1,1)+=0.1;
+       std::cout << P(1,1) <<std::endl;
+        std::cout << P*f_m <<std::endl;
+    }*/
 }
 void M2Transparent::exitCode(void) {
-    robot->setEndEffForceWithCompensation(VM2::Zero());
+    robot->setEndEffForce(VM2::Zero());
 }
 
 
@@ -263,7 +275,9 @@ void M2ArcCircle::exitCode(void) {
 
 void M2Recording::entryCode(void) {
     robot->initTorqueControl();
-    robot->setEndEffForceWithCompensation(VM2::Zero());
+    robot->setEndEffForce(VM2::Zero());
+    ForceP(0,0) = 1.3;
+    ForceP(1,1) = 1.4;
 
     //Define Variables
     RecordingPoint=0;
@@ -272,8 +286,9 @@ void M2Recording::entryCode(void) {
 
 }
 void M2Recording::duringCode(void) {
-    //Apply 0 force
-    robot->setEndEffForceWithCompensation(VM2::Zero());
+    //Transparent force control
+    VM2 f_m = robot->getInteractionForceRef();
+    robot->setEndEffForce(ForceP*f_m);
 
 	//Record stuff...
 	PositionRecording=robot->getEndEffPosition();
@@ -281,10 +296,12 @@ void M2Recording::duringCode(void) {
 	RecordingPoint++;
 
     if(iterations%100==1) {
-        robot->printStatus();}
+        robot->printStatus();
+    }
 }
 
 void M2Recording::exitCode(void) {
+    robot->setEndEffForce(VM2::Zero());
 	//Identify circle??
 	/**
 	what we care about
@@ -416,8 +433,6 @@ void M2Recording::exitCode(void) {
      for(int i=0; i<9; i++) {vel_sequence[i] = vel_index_num[i];}
      for(int i=0; i<9; i++) {std::cout << "Velocity sequence is " << vel_sequence[i] << " \n";}
      //int vel_sequence = vel_index_num;
-
-    robot->setEndEffForceWithCompensation(VM2::Zero());
 }
 
 
