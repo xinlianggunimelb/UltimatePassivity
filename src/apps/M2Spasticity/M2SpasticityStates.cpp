@@ -408,18 +408,26 @@ void M2MinJerkPosition::duringCode(void) {
         OWNER->goToTransparentFlag = true;
     }
 
+    //distance to the starting point
+    double threshold = 0.01;
+    VM2 distanceStPt=OWNER->global_start_point-robot->getEndEffPosition();
+
     //Have we reached a point?
     if (status>=1. && iterations%100==1){
-       //robot->setJointVelocity(VM2::Zero());
-       std::cout << "OK. \n";
-
-       //if (OWNER->test_loop==0 || OWNER->test_loop>=9){}
-       if (OWNER->movement_loop>=1 && OWNER->movement_loop<=8){
-          goToNextVel=true; //Trigger event: go to next velocity in one trial
+       //check if we reach the starting point
+       if(abs(distanceStPt[0])<=threshold && abs(distanceStPt[1])<=threshold){
+            std::cout << "OK. \n";
+            //if (OWNER->test_loop==0 || OWNER->test_loop>=9){}
+            if (OWNER->movement_loop>=1 && OWNER->movement_loop<=8){
+                goToNextVel=true; //Trigger event: go to next velocity in one trial
+            }
+            if (OWNER->movement_loop>=9){
+                goToNextVel=false;
+                OWNER->movement_loop=0;
+            }
        }
-       if (OWNER->movement_loop>=9){
-          goToNextVel=false;
-          OWNER->movement_loop=0;
+       else{
+           OWNER->goToTransparentFlag = true;
        }
     }
 }
