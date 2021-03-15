@@ -25,6 +25,7 @@ Robot::~Robot() {
 
 bool Robot::initialise() {
     if (initialiseNetwork()) {
+            enabled = true;
             return true;
     }
     return false;
@@ -32,9 +33,13 @@ bool Robot::initialise() {
 
 
 bool Robot::disable() {
-    spdlog::info("Disabling robot...");
-    for (auto p : joints) {
-        p->disable();
+    if(enabled)
+    {
+        spdlog::info("Disabling robot...");
+        for (auto p : joints) {
+            p->disable();
+        }
+        enabled = false;
     }
     return true;
 }

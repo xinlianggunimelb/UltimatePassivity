@@ -55,9 +55,18 @@ class M2Spasticity : public StateMachine {
     M2Calib *calibState;
     M2Transparent *standbyState;
     M2Recording *recordingState;
-    M2ArcCircle *testingState;
+    M2ArcCircle *experimentState;
     M2MinJerkPosition* minJerkState;
-    M2ArcCircleReturn *testingReturnState;
+    M2ArcCircleReturn *experimentReturnState;
+    M2CircleTest * testingState;
+
+    //Spasticity test variables
+    VM2 global_center_point;
+    VM2 global_start_point;
+    double global_radius;
+    double global_start_angle;
+    int movement_loop = 0;
+    int vel_sequence[9];
 
    protected:
     RobotM2 *robot;         /*!< Pointer to the Robot*/
@@ -66,6 +75,18 @@ class M2Spasticity : public StateMachine {
    private:
     EventObject(EndCalib) * endCalib;
     EventObject(GoToNextState) * goToNextState;
+    EventObject(GoToPrevState) * goToPrevState;
+    EventObject(StartRecording) * startRecording;
+    EventObject(EndRecording) * endRecording;
+    EventObject(FailRecording) * failRecording;
+    EventObject(StartTesting) * startTesting;
+    EventObject(EndTesting) * endTesting;
+    EventObject(FailTesting) * failTesting;
+    EventObject(StartTrial) * startTrial;
+    EventObject(StartNextVel) * startNextVel;
+    EventObject(StartReturn) * startReturn;
+    EventObject(GoToTransparent) * goToTransparent;
+    EventObject(MaxForceReturn) * maxForceReturn;
 };
 
 #endif /*M2_SM_H*/

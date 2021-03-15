@@ -48,6 +48,8 @@ class Robot {
     Eigen::VectorXd jointVelocities_;
     Eigen::VectorXd jointTorques_;
 
+    bool enabled;
+
    public:
     /** @name Constructors and Destructors */
     //@{
@@ -80,9 +82,14 @@ class Robot {
     virtual bool disable();
 
     /**
+     * \brief Return enable state (turned off by disable method)
+     */
+    bool isEnabled(){return enabled;}
+
+    /**
      * \brief Function used to set up the Master Object Dictionary to respond to any PDOs expected from any device. Is called before
-     * the initialisation of the state machine. 
-     * 
+     * the initialisation of the state machine.
+     *
      */
     virtual bool configureMasterPDOs();
         /**

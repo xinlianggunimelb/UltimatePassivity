@@ -154,6 +154,7 @@ class M2Transparent : public M2TimedState {
     void duringCode(void);
     void exitCode(void);
 
+   private:
     Eigen::Matrix2d ForceP;
 };
 
@@ -171,8 +172,14 @@ class M2ArcCircle : public M2TimedState {
     void duringCode(void);
     void exitCode(void);
 
+    bool GoToStartPt() {return goToStartPt;}
+    bool GoToTransparent() {return goToTransparentFlag;}
+
    private:
-    bool finished;
+    bool movement_finished;
+    bool goToStartPt=false;
+    bool goToTransparentFlag=false;
+
     double radius;
     double theta_s;
     double thetaRange;
@@ -185,6 +192,7 @@ class M2ArcCircle : public M2TimedState {
     double t_init, t_end_accel, t_end_cstt, t_end_decel;
     double ang_vel[9] = {10, 20, 30, 40, 50, 60, 70, 80, 90};
 };
+
 
 /**
  * \brief Basic impedance control on a static point.
@@ -225,19 +233,15 @@ class M2MinJerkPosition: public M2TimedState {
     void duringCode(void);
     void exitCode(void);
 
+    bool GoToNextVel() {return goToNextVel;}
+
    private:
-    static const unsigned int TrajNbPts=4;
-    unsigned int TrajPtIdx=0;
+    bool goToNextVel=false;
     double startTime;
-    VM2 TrajPt;
-    //VM2 TrajPt[TrajNbPts]={VM2(0.1, 0.1), VM2(0.3, 0.3), VM2(0.4, 0.1), VM2(0.4, 0.4)};
-    double TrajTime;
-    //double TrajTime[TrajNbPts]={5, 3, 1.0, 2.0};
     VM2 Xi, Xf;
     double T;
     float k_i=1.; //Integral gain
 };
-
 
 
 /**
@@ -253,17 +257,18 @@ class M2Recording : public M2TimedState {
     void duringCode(void);
     void exitCode(void);
 
+    bool isRecordingDone() {return recordingDone;}
+    bool isRecordingError() {return recordingError;}
+
    private:
     Eigen::Matrix2d ForceP;
-    unsigned int nb_samples=10000;
-    int new_value;
 
-    /**
-    *Xinliang
-    */
+    bool recordingDone=false;
+    bool recordingError=false;
+
     int RecordingPoint;
-    VM2 PositionRecording;
-    VM2 PositionTesting[10000];
+    VM2 PositionNow;
+    VM2 PositionRecorded[10000];
 
     int n;
     VM2 centroid;
@@ -280,6 +285,39 @@ class M2Recording : public M2TimedState {
     double start_angle;
     VM2 StartPt;
     //VM2 testing;
+};
+
+
+/**
+ * \brief Movement testing
+ *
+ */
+class M2CircleTest : public M2TimedState {
+
+   public:
+    M2CircleTest(StateMachine *m, RobotM2 *M2, const char *name = "M2 Circle Test"):M2TimedState(m, M2, name){};
+
+    void entryCode(void);
+    void duringCode(void);
+    void exitCode(void);
+
+    bool isTestingDone() {return testingDone;}
+    bool isTestingError() {return testingError;}
+
+   private:
+    bool testingDone = false;
+    bool testingError = false;
+    bool movement_finished;
+    double radius;
+    double theta_s;
+    double thetaRange;
+    double theta;
+    int sign;
+    double dTheta_t; //Movement target velocity (max of profile) in deg.s-1
+    double ddTheta=200; //in deg.s-2
+    VM2 centerPt;
+    VM2 startingPt;
+    double t_init, t_end_accel, t_end_cstt, t_end_decel;
 };
 
 

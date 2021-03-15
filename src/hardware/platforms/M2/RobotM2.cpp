@@ -171,6 +171,7 @@ bool RobotM2::initPositionControl() {
     for (auto p : joints) {
         ((JointM2 *)p)->enable();
     }
+    enabled = true;
 
     //TODO:CHECK STATUS 0x07
     return returnValue;
@@ -193,6 +194,8 @@ bool RobotM2::initVelocityControl() {
     for (auto p : joints) {
         ((JointM2 *)p)->enable();
     }
+    enabled = true;
+
     //TODO:CHECK STATUS 0x07
     return returnValue;
 }
@@ -214,6 +217,8 @@ bool RobotM2::initTorqueControl() {
     for (auto p : joints) {
         ((JointM2 *)p)->enable();
     }
+    enabled = true;
+
     //TODO:CHECK STATUS 0x07
     return returnValue;
 }
