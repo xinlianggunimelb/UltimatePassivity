@@ -68,6 +68,8 @@ class M2Spasticity : public StateMachine {
     int movement_loop = 0;
     int vel_sequence[9];
 
+    bool goToTransparentFlag = false;
+
    protected:
     RobotM2 *robot;         /*!< Pointer to the Robot*/
     FLNLHelper *UIserver;   /*!< Pointer to communication server*/

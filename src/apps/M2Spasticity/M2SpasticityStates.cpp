@@ -119,7 +119,6 @@ void M2Transparent::exitCode(void) {
 void M2ArcCircle::entryCode(void) {
     movement_finished = false;
     goToStartPt = false;
-    goToTransparentFlag = false;
     robot->initVelocityControl();
 
     //Initialise values (from network command) and sanity check
@@ -215,7 +214,7 @@ void M2ArcCircle::duringCode(void) {
     }
     else
     {
-       goToTransparentFlag = true;
+        OWNER->goToTransparentFlag = true;
     }
 
     if(iterations%100==1) {
@@ -365,7 +364,7 @@ void M2Recording::duringCode(void) {
 
 
         /// resonable parameters
-        if(radius>0.2 && radius<0.45 && StartPt[0]>0 && StartPt[0]<0.65 && StartPt[1]>0 && StartPt[1]<0.5 && abs(PositionRecorded[0][0]-PositionRecorded[n-1][0])>0.15 && abs(PositionRecorded[0][1]-PositionRecorded[n-1][1])>0.15){
+        if(radius>0.2 && radius<0.45 && StartPt[0]>=0 && StartPt[0]<=0.631 && StartPt[1]>=0 && StartPt[1]<=0.448 && abs(PositionRecorded[0][0]-PositionRecorded[n-1][0])>0.15 && abs(PositionRecorded[0][1]-PositionRecorded[n-1][1])>0.15){
             //if parameters reasonable, give them to global variables
             OWNER->global_center_point = Center;
             OWNER->global_start_point = StartPt;
@@ -387,7 +386,6 @@ void M2MinJerkPosition::entryCode(void) {
     //Setup velocity control for position over velocity loop
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
-
     goToNextVel=false;
 
     startTime=elapsedTime;
@@ -401,7 +399,14 @@ void M2MinJerkPosition::duringCode(void) {
     //Compute current desired interpolated point
     double status=JerkIt(Xi, Xf, T, elapsedTime-startTime, Xd, dXd);
     //Apply position control
-    robot->setEndEffVelocity(dXd+k_i*(Xd-robot->getEndEffPosition()));
+    if(robot->isEnabled())
+    {
+        robot->setEndEffVelocity(dXd+k_i*(Xd-robot->getEndEffPosition()));
+    }
+    else
+    {
+        OWNER->goToTransparentFlag = true;
+    }
 
     //Have we reached a point?
     if (status>=1. && iterations%100==1){
@@ -508,7 +513,7 @@ void M2CircleTest::duringCode(void) {
     Xd[1] = centerPt[1]+radius*sin(theta*M_PI/180.);
 
     //desired position reaches bound
-    if(Xd[0]<0 || Xd[0]>0.65 || Xd[1]<0 || Xd[1]>0.5){
+    if(Xd[0]<0 || Xd[0]>0.631 || Xd[1]<0 || Xd[1]>0.448){
         testingError = true; //trigger event
     }
 
@@ -517,7 +522,14 @@ void M2CircleTest::duringCode(void) {
     dX = dXd + K*(Xd-robot->getEndEffPosition());
 
     //Apply
-    robot->setEndEffVelocity(dX);
+    if(robot->isEnabled())
+    {
+        robot->setEndEffVelocity(dX);
+    }
+    else
+    {
+        OWNER->goToTransparentFlag = true;
+    }
 
     if(iterations%100==1) {
         std::cout << dXd.transpose() << "  ";

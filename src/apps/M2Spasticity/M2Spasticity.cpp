@@ -47,9 +47,7 @@ M2Spasticity::M2Spasticity() {
      NewTransition(experimentState, startReturn, minJerkState);
      //NewTransition(experimentState, goToNextState, experimentReturnState);
      //NewTransition(experimentReturnState, goToPrevState, experimentState);
-     NewTransition(testingState, maxForceReturn, minJerkState);
-     NewTransition(experimentState, maxForceReturn, minJerkState);
-     NewTransition(minJerkState, maxForceReturn, minJerkState);
+     NewTransition(standbyState, maxForceReturn, minJerkState);
      NewTransition(recordingState, goToTransparent, standbyState);
      NewTransition(testingState, goToTransparent, standbyState);
      NewTransition(experimentState, goToTransparent, standbyState);
@@ -288,8 +286,14 @@ bool M2Spasticity::MaxForceReturn::check() {
 
 bool M2Spasticity::GoToTransparent::check() {
     //keyboard or joystick press
-    if ( (OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==9) || OWNER->experimentState->GoToTransparent())
+    if ( (OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==9))
         return true;
+
+    if (OWNER->goToTransparentFlag)
+    {
+        OWNER->goToTransparentFlag = false;
+        return true;
+    }
 
     //Check incoming command requesting state change
     if ( OWNER->UIserver->isCmd() ) {

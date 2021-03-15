@@ -173,12 +173,10 @@ class M2ArcCircle : public M2TimedState {
     void exitCode(void);
 
     bool GoToStartPt() {return goToStartPt;}
-    bool GoToTransparent() {return goToTransparentFlag;}
 
    private:
     bool movement_finished;
     bool goToStartPt=false;
-    bool goToTransparentFlag=false;
 
     double radius;
     double theta_s;
