@@ -232,9 +232,11 @@ class M2MinJerkPosition: public M2TimedState {
     void exitCode(void);
 
     bool GoToNextVel() {return goToNextVel;}
+    bool isTrialDone() {return trialDone;}
 
    private:
     bool goToNextVel=false;
+    bool trialDone=false;
     double startTime;
     VM2 Xi, Xf;
     double T;

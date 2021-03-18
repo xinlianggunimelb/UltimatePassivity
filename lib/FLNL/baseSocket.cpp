@@ -237,10 +237,13 @@ int baseSocket::GetReceivedCmd(std::string &cmd, std::vector<double> &params) {
         cmd.assign(ReceivedCmd);
     }
     pthread_mutex_unlock(&ReceivedCmdMutex);
-
-    IsCmd=false;
-
+    
     return params.size();
+}
+
+//! Clear the received command flag. To be called after command has been consumed
+void baseSocket::ClearReceivedCmd() {
+    IsCmd=false;
 }
 
 void unlock_mutex(void * m) {

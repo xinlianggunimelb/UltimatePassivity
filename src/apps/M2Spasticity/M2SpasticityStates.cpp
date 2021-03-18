@@ -79,6 +79,7 @@ void M2Calib::duringCode(void) {
 }
 void M2Calib::exitCode(void) {
     robot->setEndEffForceWithCompensation(VM2::Zero());
+    OWNER->StateIndex=1.;
 }
 
 
@@ -117,6 +118,7 @@ void M2Transparent::exitCode(void) {
 
 
 void M2ArcCircle::entryCode(void) {
+    OWNER->StateIndex = 9.;
     movement_finished = false;
     goToStartPt = false;
     robot->initVelocityControl();
@@ -233,6 +235,7 @@ void M2ArcCircle::exitCode(void) {
 
 
 void M2Recording::entryCode(void) {
+    OWNER->StateIndex = 2.;
     recordingDone=false;
     recordingError=false;
     robot->initTorqueControl();
@@ -370,15 +373,18 @@ void M2Recording::duringCode(void) {
             OWNER->global_start_point = StartPt;
             OWNER->global_radius = radius;
             OWNER->global_start_angle = start_angle;
+            OWNER->StateIndex = 3.;
             recordingDone=true;
         }
         else{
+            OWNER->StateIndex = 5.;
             recordingError=true;
         }
     }
 }
 void M2Recording::exitCode(void) {
     robot->setEndEffForce(VM2::Zero());
+    OWNER->movement_loop = 0; //for a new trial
 }
 
 
@@ -387,6 +393,7 @@ void M2MinJerkPosition::entryCode(void) {
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
     goToNextVel=false;
+    trialDone=false;
 
     startTime=elapsedTime;
     Xi = robot->getEndEffPosition();
@@ -416,14 +423,20 @@ void M2MinJerkPosition::duringCode(void) {
     if (status>=1. && iterations%100==1){
        //check if we reach the starting point
        if(abs(distanceStPt[0])<=threshold && abs(distanceStPt[1])<=threshold){
-            std::cout << "OK. \n";
-            //if (OWNER->test_loop==0 || OWNER->test_loop>=9){}
+            //std::cout << "OK. \n";
+            if (OWNER->movement_loop==0 && OWNER->StateIndex==3.){
+                OWNER->StateIndex=4.;
+            }
+            if (OWNER->movement_loop==0 && OWNER->StateIndex==7.){
+                OWNER->StateIndex=8.;
+            }
             if (OWNER->movement_loop>=1 && OWNER->movement_loop<=8){
                 goToNextVel=true; //Trigger event: go to next velocity in one trial
             }
             if (OWNER->movement_loop>=9){
-                goToNextVel=false;
+                OWNER->StateIndex = 10.;
                 OWNER->movement_loop=0;
+                trialDone=true;
             }
        }
        else{
@@ -438,6 +451,7 @@ void M2MinJerkPosition::exitCode(void) {
 
 
 void M2CircleTest::entryCode(void) {
+    OWNER->StateIndex=6.;
     testingDone=false;
     testingError=false;
     movement_finished = false;
@@ -522,6 +536,7 @@ void M2CircleTest::duringCode(void) {
 
     //desired position reaches bound
     if(Xd[0]<0 || Xd[0]>0.631 || Xd[1]<0 || Xd[1]>0.448){
+        OWNER->StateIndex=5.;
         testingError = true; //trigger event
     }
 
@@ -546,6 +561,7 @@ void M2CircleTest::duringCode(void) {
 
     if(movement_finished && t>t_end_decel+3) //wait three seconds
     {
+        OWNER->StateIndex=7.;
         testingDone = true; //trigger event
     }
 }

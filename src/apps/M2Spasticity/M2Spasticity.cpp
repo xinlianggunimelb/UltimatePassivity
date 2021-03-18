@@ -26,6 +26,7 @@ M2Spasticity::M2Spasticity() {
     startTrial = new StartTrial(this);
     startNextVel = new StartNextVel(this);
     startReturn = new StartReturn(this);
+    endTrial = new EndTrial(this);
     goToTransparent = new GoToTransparent(this);
     maxForceReturn = new MaxForceReturn(this);
 
@@ -45,6 +46,7 @@ M2Spasticity::M2Spasticity() {
      NewTransition(minJerkState, startTrial, experimentState);
      NewTransition(minJerkState, startNextVel, experimentState);
      NewTransition(experimentState, startReturn, minJerkState);
+     NewTransition(minJerkState, endTrial, standbyState);
      //NewTransition(experimentState, goToNextState, experimentReturnState);
      //NewTransition(experimentReturnState, goToPrevState, experimentState);
      NewTransition(standbyState, maxForceReturn, minJerkState);
@@ -77,7 +79,7 @@ void M2Spasticity::init() {
         logHelper.add(robot->getInteractionForceRef(), "Force");
         logHelper.startLogger();
         UIserver = new FLNLHelper(robot, "127.0.0.1");
-        //UIserver->registerState(global_radius); //example to register a continuous value
+        UIserver->registerState(StateIndex); //example to register a continuous value
     }
     else {
         initialised = false;
@@ -134,6 +136,7 @@ bool M2Spasticity::GoToNextState::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "GTNS") { //Go To Next State command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }
@@ -156,6 +159,7 @@ bool M2Spasticity::GoToPrevState::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "GTPS") { //Go To Previous State command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }
@@ -178,6 +182,7 @@ bool M2Spasticity::StartRecording::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "RECD") { //Start Recording command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }
@@ -210,6 +215,7 @@ bool M2Spasticity::StartTesting::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "TEST") { //Start Testing command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }
@@ -242,6 +248,7 @@ bool M2Spasticity::StartTrial::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "TRIA") { //Start Trial command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }
@@ -262,6 +269,11 @@ bool M2Spasticity::StartReturn::check() {
 }
 
 
+bool M2Spasticity::EndTrial::check() {
+    return OWNER->minJerkState->isTrialDone();
+}
+
+
 bool M2Spasticity::MaxForceReturn::check() {
     //keyboard or joystick press
     if ( (OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==8) )
@@ -274,6 +286,7 @@ bool M2Spasticity::MaxForceReturn::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "MFRT") { //Max Force Return command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }
@@ -302,6 +315,7 @@ bool M2Spasticity::GoToTransparent::check() {
         OWNER->UIserver->getCmd(cmd, v);
         if (cmd == "REST") { //Go To Transparent command received
             //Acknowledge
+            OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
             return true;
         }

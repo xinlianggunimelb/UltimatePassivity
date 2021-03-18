@@ -70,6 +70,9 @@ class M2Spasticity : public StateMachine {
 
     bool goToTransparentFlag = false;
 
+    double StateIndex = 0.;
+    //int StateIndex=1;
+
    protected:
     RobotM2 *robot;         /*!< Pointer to the Robot*/
     FLNLHelper *UIserver;   /*!< Pointer to communication server*/
@@ -87,6 +90,7 @@ class M2Spasticity : public StateMachine {
     EventObject(StartTrial) * startTrial;
     EventObject(StartNextVel) * startNextVel;
     EventObject(StartReturn) * startReturn;
+    EventObject(EndTrial) * endTrial;
     EventObject(GoToTransparent) * goToTransparent;
     EventObject(MaxForceReturn) * maxForceReturn;
 };
