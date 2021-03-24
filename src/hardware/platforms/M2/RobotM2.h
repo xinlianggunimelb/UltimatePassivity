@@ -28,6 +28,7 @@ typedef Eigen::Vector2d VM2; //! Convenience alias for double  Vector of length 
  * \brief Implementation of the M2 robot class, representing an M2 using 2 JointM2
  */
 class RobotM2 : public Robot {
+
    private:
     VM2 qCalibration = {0, 0.};  /*!< Calibration configuration: posture in which the robot is when using the calibration procedure */
 
