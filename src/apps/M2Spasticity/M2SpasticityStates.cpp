@@ -48,7 +48,7 @@ void M2Calib::duringCode(void) {
     //Apply constant torque (with damping) unless stop has been detected for more than 0.5s
     VM2 vel=robot->getVelocity();
     double b = 3;
-    for(unsigned int i=0; i<vel.size(); i++) {
+    for(int i=0; i<vel.size(); i++) {
         tau(i) = -std::min(std::max(20 - b * vel(i), .0), 20.);
         if(stop_reached_time(i)>1) {
             at_stop[i]=true;

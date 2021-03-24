@@ -30,7 +30,7 @@ set(USE_ROS OFF)
 
 # Select desired logging level (Options: TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL OFF)
 # INFO is the recommended level in normal operation
-set(CORC_LOGGING_LEVEL TRACE)
+set(CORC_LOGGING_LEVEL INFO)
 
 ################################################################################
 if(USE_ROS)
@@ -45,7 +45,7 @@ endif()
 add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_${CORC_LOGGING_LEVEL})
 
 
-## Compile as C++11
+## Compile as C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(USE_ROS)
