@@ -118,21 +118,22 @@ void M2Transparent::exitCode(void) {
 
 
 void M2ArcCircle::entryCode(void) {
-    OWNER->StateIndex = 9.;
+    OWNER->StateIndex = 11.+OWNER->STest->movement_loop;
     movement_finished = false;
     goToStartPt = false;
     robot->initVelocityControl();
 
     //Initialise values (from network command) and sanity check
-    theta_s = OWNER->global_start_angle;
-    radius = OWNER->global_radius;
-    centerPt = OWNER->global_center_point;
-    startingPt = OWNER->global_start_point;
+    theta_s = OWNER->STest->global_start_angle;
+    radius = OWNER->STest->global_radius;
+    centerPt = OWNER->STest->global_center_point;
+    startingPt = OWNER->STest->global_start_point;
 
-    for(int i=0; i<9; i++) {std::cout << "Velocity (overview) is " << ang_vel[OWNER->vel_sequence[i]] << " degree/second \n";}
+    for(int i=0; i<9; i++) {std::cout << "Velocity (overview) is " << ang_vel[OWNER->STest->vel_sequence[i]] << " degree/second \n";}
 
-    dTheta_t = ang_vel[OWNER->vel_sequence[OWNER->movement_loop]];
-    OWNER->movement_loop ++;
+    dTheta_t = ang_vel[OWNER->STest->vel_sequence[OWNER->STest->movement_loop]];
+    OWNER->AngularVelocity = dTheta_t;
+    OWNER->STest->movement_loop ++;
     std::cout << "Velocity is "<< dTheta_t << " degree/second \n";
 
     thetaRange=80;
@@ -216,6 +217,7 @@ void M2ArcCircle::duringCode(void) {
     }
     else
     {
+        OWNER->StateIndex = 22.;
         OWNER->goToTransparentFlag = true;
     }
 
@@ -231,6 +233,7 @@ void M2ArcCircle::duringCode(void) {
 }
 void M2ArcCircle::exitCode(void) {
     robot->setEndEffVelocity(VM2::Zero());
+    OWNER->AngularVelocity = 0.;
 }
 
 
@@ -369,10 +372,10 @@ void M2Recording::duringCode(void) {
         /// resonable parameters
         if(radius>0.2 && radius<0.45 && StartPt[0]>=0 && StartPt[0]<=0.631 && StartPt[1]>=0 && StartPt[1]<=0.448 && abs(PositionRecorded[0][0]-PositionRecorded[n-1][0])>0.15 && abs(PositionRecorded[0][1]-PositionRecorded[n-1][1])>0.15){
             //if parameters reasonable, give them to global variables
-            OWNER->global_center_point = Center;
-            OWNER->global_start_point = StartPt;
-            OWNER->global_radius = radius;
-            OWNER->global_start_angle = start_angle;
+            OWNER->STest->global_center_point = Center;
+            OWNER->STest->global_start_point = StartPt;
+            OWNER->STest->global_radius = radius;
+            OWNER->STest->global_start_angle = start_angle;
             OWNER->StateIndex = 3.;
             recordingDone=true;
         }
@@ -384,7 +387,7 @@ void M2Recording::duringCode(void) {
 }
 void M2Recording::exitCode(void) {
     robot->setEndEffForce(VM2::Zero());
-    OWNER->movement_loop = 0; //for a new trial
+    OWNER->STest->movement_loop = 0; //for a new trial
 }
 
 
@@ -397,7 +400,7 @@ void M2MinJerkPosition::entryCode(void) {
 
     startTime=elapsedTime;
     Xi = robot->getEndEffPosition();
-    Xf = OWNER->global_start_point;
+    Xf = OWNER->STest->global_start_point;
     T=5; //Trajectory Time
     k_i=1.;
 }
@@ -412,34 +415,37 @@ void M2MinJerkPosition::duringCode(void) {
     }
     else
     {
+        if(OWNER->STest->movement_loop==0){OWNER->StateIndex = 21.;}
+        if(OWNER->STest->movement_loop>0){OWNER->StateIndex = 22.;}
         OWNER->goToTransparentFlag = true;
     }
 
     //distance to the starting point
     double threshold = 0.01;
-    VM2 distanceStPt=OWNER->global_start_point-robot->getEndEffPosition();
+    VM2 distanceStPt=OWNER->STest->global_start_point-robot->getEndEffPosition();
 
     //Have we reached a point?
     if (status>=1. && iterations%100==1){
        //check if we reach the starting point
        if(abs(distanceStPt[0])<=threshold && abs(distanceStPt[1])<=threshold){
             //std::cout << "OK. \n";
-            if (OWNER->movement_loop==0 && OWNER->StateIndex==3.){
+            if (OWNER->STest->movement_loop==0 && OWNER->StateIndex==3.){
                 OWNER->StateIndex=4.;
             }
-            if (OWNER->movement_loop==0 && OWNER->StateIndex==7.){
+            if (OWNER->STest->movement_loop==0 && OWNER->StateIndex==7.){
                 OWNER->StateIndex=8.;
             }
-            if (OWNER->movement_loop>=1 && OWNER->movement_loop<=8){
+            if (OWNER->STest->movement_loop>=1 && OWNER->STest->movement_loop<=8){
                 goToNextVel=true; //Trigger event: go to next velocity in one trial
             }
-            if (OWNER->movement_loop>=9){
-                OWNER->StateIndex = 10.;
-                OWNER->movement_loop=0;
+            if (OWNER->STest->movement_loop>=9){
+                OWNER->StateIndex = 20.;
+                OWNER->STest->movement_loop=0;
                 trialDone=true;
             }
        }
        else{
+           OWNER->StateIndex = 23.;
            OWNER->goToTransparentFlag = true;
        }
     }
@@ -458,12 +464,13 @@ void M2CircleTest::entryCode(void) {
     robot->initVelocityControl();
 
     //Initialise values (from network command) and sanity check
-    theta_s = OWNER->global_start_angle;
-    radius = OWNER->global_radius;
-    centerPt = OWNER->global_center_point;
-    startingPt = OWNER->global_start_point;
+    theta_s = OWNER->STest->global_start_angle;
+    radius = OWNER->STest->global_radius;
+    centerPt = OWNER->STest->global_center_point;
+    startingPt = OWNER->STest->global_start_point;
 
     dTheta_t = 10; //testing velocity 10 degree/second
+    OWNER->AngularVelocity = dTheta_t;
     std::cout << "Velocity is "<< dTheta_t << " degree/second \n";
 
     thetaRange=80;
@@ -551,6 +558,7 @@ void M2CircleTest::duringCode(void) {
     }
     else
     {
+        OWNER->StateIndex = 21.;
         OWNER->goToTransparentFlag = true;
     }
 
@@ -568,22 +576,23 @@ void M2CircleTest::duringCode(void) {
 void M2CircleTest::exitCode(void) {
     robot->setEndEffVelocity(VM2::Zero());
 
-    OWNER->movement_loop = 0; //for a new trial
+    OWNER->AngularVelocity = 0.;
+    OWNER->STest->movement_loop = 0; //for a new trial
     /// randomly order velocity
     vector<int> vel_index_num={0,1,2,3,4,5,6,7,8};
     srand(time(0));
     random_shuffle(vel_index_num.begin(), vel_index_num.end());
-    for(int i=0; i<9; i++) {OWNER->vel_sequence[i] = vel_index_num[i];}
-    for(int i=0; i<9; i++) {std::cout << "Velocity sequence is " << OWNER->vel_sequence[i] << " \n";}
+    for(int i=0; i<9; i++) {OWNER->STest->vel_sequence[i] = vel_index_num[i];}
+    for(int i=0; i<9; i++) {std::cout << "Velocity sequence is " << OWNER->STest->vel_sequence[i] << " \n";}
 }
 
 
 void M2ArcCircleReturn::entryCode(void) {
     robot->initVelocityControl();
 
-    theta_s = OWNER->global_start_angle;
-    radius = OWNER->global_radius;
-    centerPt = OWNER->global_center_point;
+    theta_s = OWNER->STest->global_start_angle;
+    radius = OWNER->STest->global_radius;
+    centerPt = OWNER->STest->global_center_point;
 
     dTheta_t = 6; //Arc Return Velocity
     ddTheta=200;

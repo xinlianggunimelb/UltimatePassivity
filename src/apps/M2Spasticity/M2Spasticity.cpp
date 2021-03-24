@@ -4,6 +4,7 @@
 
 M2Spasticity::M2Spasticity() {
     robot = new RobotM2();
+    STest = new SpasticityTest();
 
     // Create PRE-DESIGNED State Machine events and state objects.
     calibState = new M2Calib(this, robot);
@@ -317,6 +318,7 @@ bool M2Spasticity::GoToTransparent::check() {
             //Acknowledge
             OWNER->UIserver->clearCmd();
             OWNER->UIserver->sendCmd(string("OK"));
+            OWNER->StateIndex = 9.;
             return true;
         }
     }

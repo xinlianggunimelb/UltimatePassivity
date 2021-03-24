@@ -27,6 +27,18 @@
 // State Classes
 #include "M2SpasticityStates.h"
 
+
+//Spasticity test variables
+struct SpasticityTest
+{
+    VM2 global_center_point;
+    VM2 global_start_point;
+    double global_radius;
+    double global_start_angle;
+    int movement_loop = 0;
+    int vel_sequence[9];
+};
+
 /**
  * @brief Example implementation of a StateMachine for the M2Robot class. States should implemented M2DemoState
  *
@@ -60,18 +72,12 @@ class M2Spasticity : public StateMachine {
     M2ArcCircleReturn *experimentReturnState;
     M2CircleTest * testingState;
 
-    //Spasticity test variables
-    VM2 global_center_point;
-    VM2 global_start_point;
-    double global_radius;
-    double global_start_angle;
-    int movement_loop = 0;
-    int vel_sequence[9];
+    SpasticityTest *STest;
 
     bool goToTransparentFlag = false;
 
     double StateIndex = 0.;
-    //int StateIndex=1;
+    double AngularVelocity = 0.;
 
    protected:
     RobotM2 *robot;         /*!< Pointer to the Robot*/
