@@ -6,12 +6,13 @@ RobotM2::RobotM2() : Robot(),
                      calibrated(false),
                      maxEndEffVel(3),
                      maxEndEffForce(80) {
+
     //Define the robot structure: each joint with limits and drive
     double tau_max = 1.9 * 166;
     joints.push_back(new JointM2(0, 0, 0.625, 1, -maxEndEffVel, maxEndEffVel, -tau_max, tau_max, new KincoDrive(1), "x"));
     joints.push_back(new JointM2(1, 0, 0.440, 1, -maxEndEffVel, maxEndEffVel, -tau_max, tau_max, new KincoDrive(2), "y"));
 
-    forceSensors.push_back(new FourierForceSensor(3, -0.0521)); //TODO: to calibrate!
+    forceSensors.push_back(new FourierForceSensor(3, -0.0521));
     forceSensors.push_back(new FourierForceSensor(4, 0.0521));
     for(unsigned int i=0; i<forceSensors.size(); i++)
         inputs.push_back(forceSensors[i]);
