@@ -1,7 +1,7 @@
 /**
- * \file M2Spasticity.h
+ * \file M2Admittance.h
  * \author Vincent Crocher
- * /brief The <code>M2Spasticity</code> class represents an example implementation of an M2 state machine.
+ * /brief The <code>M2Admittance</code> class represents an example implementation of an M2 state machine.
  * \version 0.1
  * \date 2020-12-09
  *
@@ -25,25 +25,19 @@
 #include "FLNLHelper.h"
 
 // State Classes
-#include "M2SpasticityStates.h"
+#include "M2AdmittanceStates.h"
 
 
-//Spasticity test variables
-struct SpasticityTest
+//Admittance test variables
+struct AdmittanceTest
 {
-    VM2 global_center_point;
-    VM2 global_start_point;
-    double global_radius;
-    double global_start_angle;
-    int movement_loop = 0;
-    int vel_sequence[9];
 };
 
 /**
  * @brief Example implementation of a StateMachine for the M2Robot class. States should implemented M2DemoState
  *
  */
-class M2Spasticity : public StateMachine {
+class M2Admittance : public StateMachine {
    public:
     bool running = false;
     std::chrono::steady_clock::time_point time_init; // initial time that machine started
@@ -52,8 +46,8 @@ class M2Spasticity : public StateMachine {
      *  \todo Pilot Parameters would be set in constructor here
      *
      */
-    M2Spasticity();
-    ~M2Spasticity();
+    M2Admittance();
+    ~M2Admittance();
     void init();
     void end();
 
@@ -66,39 +60,22 @@ class M2Spasticity : public StateMachine {
      */
     M2Calib *calibState;
     M2Transparent *standbyState;
-    M2Recording *recordingState;
-    M2ArcCircle *experimentState;
     M2MinJerkPosition* minJerkState;
-    M2ArcCircleReturn *experimentReturnState;
-    M2CircleTest * testingState;
 
-    SpasticityTest *STest;
+    AdmittanceTest *STest;
 
     bool goToTransparentFlag = false;
 
-    double StateIndex = 0.;
-    double AngularVelocity = 0.;
 
    protected:
     RobotM2 *robot;         /*!< Pointer to the Robot*/
-    FLNLHelper *UIserver;   /*!< Pointer to communication server*/
 
    private:
     EventObject(EndCalib) * endCalib;
     EventObject(GoToNextState) * goToNextState;
     EventObject(GoToPrevState) * goToPrevState;
-    EventObject(StartRecording) * startRecording;
-    EventObject(EndRecording) * endRecording;
-    EventObject(FailRecording) * failRecording;
-    EventObject(StartTesting) * startTesting;
-    EventObject(EndTesting) * endTesting;
-    EventObject(FailTesting) * failTesting;
-    EventObject(StartTrial) * startTrial;
-    EventObject(StartNextVel) * startNextVel;
-    EventObject(StartReturn) * startReturn;
-    EventObject(EndTrial) * endTrial;
     EventObject(GoToTransparent) * goToTransparent;
-    EventObject(MaxForceReturn) * maxForceReturn;
+
 };
 
 #endif /*M2_SM_H*/
