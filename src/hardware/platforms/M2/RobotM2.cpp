@@ -5,7 +5,7 @@ using namespace Eigen;
 RobotM2::RobotM2() : Robot(),
                      calibrated(false),
                      maxEndEffVel(3),
-                     maxEndEffForce(80) {
+                     maxEndEffForce(150) {
 
     //Define the robot structure: each joint with limits and drive
     double tau_max = 1.9 * 166;
