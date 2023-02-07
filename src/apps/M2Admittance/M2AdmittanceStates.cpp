@@ -225,7 +225,6 @@ void M2MinJerkPosition::exitCode(void) {
 }
 
 // M2Admittance1: the original strategy
-
 void M2Admittance1::entryCode(void) {
     //Setup velocity control for position over velocity loop
     robot->initVelocityControl();
@@ -267,7 +266,7 @@ void M2Admittance1::entryCode(void) {
     stateLogger.add((B(0,0),B(1,1)),"Virutal_damping");
     //stateLogger.add((Bd(0,0),Bd(1,1)),"Desired_damping");
     //
-   //stateLogger.add(Eobs,"Observed_Energy");
+    //stateLogger.add(Eobs,"Observed_Energy");
     stateLogger.startLogger();
 }
 
@@ -290,7 +289,7 @@ void M2Admittance1::duringCode(void) {
     }
 
     //calculate VE velocity (X,dx)
-     //myVE(X, dX, Fm, M, Operator, dt);
+    //myVE(X, dX, Fm, M, Operator, dt);
     Verror = Vd - dX;
     Power = myPOerror(dX,Vd,Fm,dt)*dt;
 
@@ -388,17 +387,17 @@ void M2Admittance2::duringCode(void) {
     //VM2 X, dX, Fm, Vd;
     //get robot position and velocity and force mesaure
 
-     X = robot->getEndEffPosition();
-     dX = robot->getEndEffVelocity();
-     Fm = robot->getInteractionForceRef();
+    X = robot->getEndEffPosition();
+    dX = robot->getEndEffVelocity();
+    Fm = robot->getInteractionForceRef();
 
-     //calculate VE velocity (X,dx)
-     //myVE(X, dX, Fm, M, Operator, dt);
-     if(robot->keyboard->getQ())
-     {
+    //calculate VE velocity (X,dx)
+    //myVE(X, dX, Fm, M, Operator, dt);
+    if(robot->keyboard->getQ())
+    {
         Md(1,1)-= 0.1;
         std::cout <<  Md(1,1) <<std::endl;
-     }
+    }
 
     if(robot->keyboard->getA())
     {
@@ -414,34 +413,29 @@ void M2Admittance2::duringCode(void) {
     if (i <= ObsvT)
     {
     //Eobs = Eobs + myPO_obs(dX, Fm, dt);
-     Eobs = Eobs + myPOobs(dX, Fm, dt)*dt;
-     i += 1;
-     if (Eobs(0) >= Eu(0)){Eobs(0) = Eu(0);}
-     if (Eobs(0) <= El(0)){Eobs(0) = El(0);}
-     else{Eobs(0)=Eobs(0);}
-     if (Eobs(1) >= Eu(1)){Eobs(1) = Eu(1);}
-     if (Eobs(1) <= El(1)){Eobs(1) = El(1);}
-     else{Eobs(0)=Eobs(0);}
+        Eobs = Eobs + myPOobs(dX, Fm, dt)*dt;
+        i += 1;
+        if (Eobs(0) >= Eu(0)){Eobs(0) = Eu(0);}
+        if (Eobs(0) <= El(0)){Eobs(0) = El(0);}
+        else{Eobs(0)=Eobs(0);}
+        if (Eobs(1) >= Eu(1)){Eobs(1) = Eu(1);}
+        if (Eobs(1) <= El(1)){Eobs(1) = El(1);}
+        else{Eobs(0)=Eobs(0);}
     }
     if (i > ObsvT)
     {
-     i = 0;
-     Eobs(VM2::Zero());
-     std::cout << "A2 PO is reseted" << std::endl;
+        i = 0;
+        Eobs(VM2::Zero());
+        std::cout << "A2 PO is reseted" << std::endl;
     }
 
-     if(iterations%100==1)
-     {
+    if(iterations%100==1)
+    {
         robot->printStatus();
         std::cout << Eobs.transpose() << std::endl;
-     }
+    }
 
-    //if(robot->keyboard->getQ()) {
-       //change stuff
-    //}
-    // if(robot->keyboard->getA()) {
-       //change stuff
-    //}
+
 
     POx = Eobs(0);
     POy = Eobs(1);
@@ -452,7 +446,7 @@ void M2Admittance2::duringCode(void) {
     //Vd(0) = gainx * Vd(0);
 
     if (POy <= El(1)){M(1,1) = 5;}
-    if(POy >= Eu(1)){M(1,1) = Md(1,1);}
+    if (POy >= Eu(1)){M(1,1) = Md(1,1);}
     else{M(1,1) = M(1,1);}
 
     M(0,0) = max(M(0,0),0.01);
@@ -462,13 +456,15 @@ void M2Admittance2::duringCode(void) {
     //apply velocity
     //robot->setEndEffVelocity();
     robot->setEndEffVelocity(Vd);
-//
+    //
     stateLogger.recordLogData();
 }
+
 
 void M2Admittance2::exitCode(void) {
     robot->setJointVelocity(VM2::Zero());
 }
+
 
 //Classic PO
 void M2Admittance3::entryCode(void) {
@@ -548,17 +544,6 @@ void M2Admittance3::duringCode(void) {
      dX = robot->getEndEffVelocity();
      Fm = robot->getInteractionForceRef();
 
-     //calculate VE velocity (X,dx)
-     //myVE(X, dX, Fm, M, Operator, dt);
-     //if(robot->keyboard->getQ()) {
-     //   M(1,1)-=0.1;
-     //   std::cout <<  M(1,1) <<std::endl;
-     //}
-     //if(robot->keyboard->getA()) {
-     //    M(1,1)+=0.1;
-     //   std::cout <<  M(1,1) <<std::endl;
-     // }
-
     Vd = myVE(X, dX, Fm, B, M, dt);
 
 
@@ -586,14 +571,6 @@ void M2Admittance3::duringCode(void) {
         robot->printStatus();
         std::cout << Eobs.transpose() << std::endl;
      }
-
-     // if(robot->keyboard->getQ()) {
-       //change stuff
-     //}
-
-     //if(robot->keyboard->getA()) {
-       //change stuff
-     //}
 
     PO_x = Eobs(0);
     PO_y = Eobs(1);
@@ -637,5 +614,3 @@ void M2Admittance3::duringCode(void) {
 void M2Admittance3::exitCode(void) {
     robot->setJointVelocity(VM2::Zero());
 }
-
-
