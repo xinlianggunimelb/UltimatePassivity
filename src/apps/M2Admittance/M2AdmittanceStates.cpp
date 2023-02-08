@@ -113,7 +113,6 @@ void M2Calib::entryCode(void) {
     robot->printJointStatus();
     std::cout << "Calibrating (keep clear)..." << std::flush;
 }
-
 //Move slowly on each joint until max force detected
 void M2Calib::duringCode(void) {
     VM2 tau(0, 0);
@@ -224,6 +223,7 @@ void M2MinJerkPosition::exitCode(void) {
     robot->setJointVelocity(VM2::Zero());
 }
 
+
 // M2Admittance1: the original strategy
 void M2Admittance1::entryCode(void) {
     //Setup velocity control for position over velocity loop
@@ -320,6 +320,7 @@ void M2Admittance1::duringCode(void) {
 void M2Admittance1::exitCode(void) {
     robot->setJointVelocity(VM2::Zero());
 }
+
 
 //Own strategy, the admittance controller algorithm is work as
 void M2Admittance2::entryCode(void) {
@@ -459,7 +460,6 @@ void M2Admittance2::duringCode(void) {
     //
     stateLogger.recordLogData();
 }
-
 
 void M2Admittance2::exitCode(void) {
     robot->setJointVelocity(VM2::Zero());
