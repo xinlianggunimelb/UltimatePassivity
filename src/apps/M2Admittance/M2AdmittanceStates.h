@@ -109,7 +109,6 @@ class M2DemoState : public M2TimedState {
 };
 
 
-
 /**
  * \brief Position calibration of M2. Go to the bottom left stops of robot at constant torque for absolute position calibration.
  *
@@ -150,7 +149,6 @@ class M2Transparent : public M2TimedState {
 };
 
 
-
 /**
  * \brief Point to tpoint position control with min jerk trajectory interpolation
  *
@@ -171,7 +169,7 @@ class M2MinJerkPosition: public M2TimedState {
     bool goToNextVel=false;
     bool trialDone=false;
     double startTime;
-    VM2 Xi, Xf, Verror;
+    VM2 Xi, Xf;
     double T;
     float k_i=1.; //Integral gain
 };
@@ -192,22 +190,20 @@ class M2Admittance1: public M2TimedState {
 
    private:
     LogHelper stateLogger;
-    VM2 Eobs;
+
+    VM2 E_obs;
     Eigen::Matrix2d B;
     Eigen::Matrix2d M;
     Eigen::Matrix2d Operator;
+    Eigen::Matrix2d B1, B2;
 
-    VM2 X;
-    VM2 dX,Verror, Power;
+    VM2 X, dX;
+    VM2 V_error, Power;
     VM2 Fm;
     VM2 Vd;
-    VM2 Eu, El;
-    double startTime;
-    VM2 Xi, Xf;
-    double T;
-    int ObsvT, ObsvTx, ObsvTy, i;
-    float k_i=1.; //Integral gain
-
+    VM2 E_class;
+    int Obsv_T;
+    int i;
 };
 
 

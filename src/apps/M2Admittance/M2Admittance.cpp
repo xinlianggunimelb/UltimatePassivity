@@ -93,16 +93,13 @@ void M2Admittance::hwStateUpdate(void) {
     robot->updateRobot();
 }
 
-
-
 bool M2Admittance::EndCalib::check() {
     return OWNER->calibState->isCalibDone();
 }
 
-
 bool M2Admittance::GoToOne::check() {
     //keyboard or joystick press
-    if ( (OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==1) )
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==1 )
         return true;
 
     //Otherwise false
@@ -110,7 +107,7 @@ bool M2Admittance::GoToOne::check() {
 }
 bool M2Admittance::GoToTwo::check() {
     //keyboard or joystick press
-    if ( (OWNER->robot->joystick->isButtonPressed(2) || OWNER->robot->keyboard->getNb()==2) )
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==2 )
         return true;
 
     //Otherwise false
@@ -118,7 +115,7 @@ bool M2Admittance::GoToTwo::check() {
 }
 bool M2Admittance::GoToThree::check() {
     //keyboard or joystick press
-    if ( (OWNER->robot->joystick->isButtonPressed(3) || OWNER->robot->keyboard->getNb()==3) )
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==3 )
         return true;
 
     //Otherwise false
@@ -127,27 +124,25 @@ bool M2Admittance::GoToThree::check() {
 
 bool M2Admittance::GoToNextState::check() {
     //keyboard or joystick press
-    if ( OWNER->robot->joystick->isButtonPressed(5) || OWNER->robot->keyboard->getS() )
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==9 )
         return true;
 
     //Otherwise false
     return false;
 }
-
 
 bool M2Admittance::GoToPrevState::check() {
     //keyboard or joystick press
-    if ( (OWNER->robot->joystick->isButtonPressed(6) || OWNER->robot->keyboard->getNb()==2) )
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==8 )
         return true;
 
     //Otherwise false
     return false;
 }
 
-
 bool M2Admittance::GoToTransparent::check() {
     //keyboard or joystick press
-    if ( (OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==9))
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==7 )
         return true;
 
     if (OWNER->goToTransparentFlag)
@@ -159,8 +154,6 @@ bool M2Admittance::GoToTransparent::check() {
     //Otherwise false
     return false;
 }
-
-
 
 bool M2Admittance::configureMasterPDOs() {
     spdlog::debug("M2Admittance::configureMasterPDOs()");
