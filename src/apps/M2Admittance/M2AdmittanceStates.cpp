@@ -210,12 +210,12 @@ void M2Admittance1::entryCode(void) {
     //Setup velocity control for position over velocity loop
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
-    M(0,0)=M(1,1)= 1.0;
-    B1(0,0)=B1(1,1)= 2.0;
-    B2(0,0)=B2(1,1)= 20.0;
+    M(0,0) = M(1,1) = 1.0;
+    B1(0,0) = B1(1,1) = 2.0;
+    B2(0,0) = B2(1,1) = 20.0;
 
-    B(0,0)=B1(0,0);
-    B(1,1)=B1(1,1);
+    B(0,0) = B1(0,0);
+    B(1,1) = B1(1,1);
 
     E_obs(0) = 0.0;
     E_obs(1) = 0.0;
@@ -239,13 +239,13 @@ void M2Admittance1::entryCode(void) {
     stateLogger.add(robot->getEndEffPositionRef(), "Position");
     stateLogger.add(robot->getEndEffVelocityRef(), "Velocity");
     stateLogger.add(robot->getInteractionForceRef(), "Force");
-    stateLogger.add(E_obs,"Observed_Energy");
-    stateLogger.add(V_error,"velocity_error");
-    stateLogger.add(Power,"Power_PO");
+    stateLogger.add(E_obs, "Observed_Energy");
+    stateLogger.add(V_error, "Velocity_error");
+    stateLogger.add(Power, "Power_PO");
     //
     stateLogger.add((M(0,0),M(1,1)), "Virtual_mass");
     //stateLogger.add((Md(0,0),Md(1,1)),"Desired_mass");
-    stateLogger.add((B(0,0),B(1,1)),"Virtual_damping");
+    stateLogger.add((B(0,0),B(1,1)), "Virtual_damping");
     //stateLogger.add((Bd(0,0),Bd(1,1)),"Desired_damping");
     stateLogger.startLogger();
 }
@@ -291,6 +291,14 @@ void M2Admittance1::duringCode(void) {
     if (i >= Obsv_T) {
         i = 0;
         E_obs(VM2::Zero());
+        std::cout << "A2 PO is reseted" << std::endl;
+    }
+
+    if(iterations%10==1) {
+        //robot->printStatus();
+        std::cout << "Energy=[ " << E_obs.transpose() << " ]\t" ;
+        std::cout << "Damping_x=[ " << B(0,0) << " ]\t" ;
+        std::cout << "Damping_y=[ " << B(1,1) << " ]\t" <<std::endl;
     }
 
     //E_class triggered
@@ -303,13 +311,10 @@ void M2Admittance1::duringCode(void) {
     }
     else B(1,1) = B1(1,1);
 
+    B(0,0) = max(B(0,0), 0.01);
+    B(1,1) = max(B(1,1), 0.01);
+
     Vd = myVE(X, dX, Fm, B, M, dt);
-    if(iterations%100==1) {
-        //robot->printStatus();
-        std::cout << "Energy=[ " << E_obs.transpose() << " ]\t" ;
-        std::cout << "Damping_x=[ " << B(0,0) << " ]\t" ;
-        std::cout << "Damping_y=[ " << B(1,1) << " ]\t" <<std::endl;
-    }
     //apply velocity
     robot->setEndEffVelocity(Vd);
     stateLogger.recordLogData();
@@ -320,140 +325,126 @@ void M2Admittance1::exitCode(void) {
 }
 
 
-//Own strategy, the admittance controller algorithm is work as
+// 2Admittance2: Ultimate Passivity
 void M2Admittance2::entryCode(void) {
     //Setup velocity control for position over velocity loop
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
 
-    M(0,0)=M(1,1)=Md(0,0)=Md(1,1)=0.5;
-    B(0,0)=B(1,1)=Bd(0,0)=Bd(1,1)=1.0;
+    M(0,0) = M(1,1) =1.0;
+    B1(0,0) = B1(1,1) = 1.2;
+    B2(0,0) = B2(1,1) = 50.0;
 
-    Eobs(0) = 0.0;
-    Eobs(1) = 0.0;
+    B(0,0)=B1(0,0);
+    B(1,1)=B1(1,1);
 
-    // X(VM2::Zero());
-    // dX(VM2::Zero());
-    // Fm(VM2::Zero());
-    // Vd(VM2::Zero());
+    E_obs(0) = 0.0;
+    E_obs(1) = 0.0;
 
-    POx = 0.0;
-    POy = 0.0;
-
-    gainx = 1.0;
-    gainy = 1.0;
-
-    alphax = 0.2;
-    alphay = 0.2;
-
-    ObsvT = 1000;
+    Obsv_T = 1000;
     i = 0;
 
     X(VM2::Zero());
     dX(VM2::Zero());
     Fm(VM2::Zero());
     Vd(VM2::Zero());
+    V_error(VM2::Zero());
 
-    Verror(VM2::Zero());
+    E_lower(0) = E_lower(1) = -2.3;
+    E_upper(0) = E_upper(1) = 2.3;
 
-    El(0) = El(1) = -2;
-    Eu(0) = Eu(1) = 2;
-    //Obsv_Tx = 100;
-    //Obsv_Ty = 100;
-
-   stateLogger.initLogger("M2Admittance2State", "logs/M2Admittance2State.csv", LogFormat::CSV, true);
-   stateLogger.add(elapsedTime, "Time (s)");
-   stateLogger.add(robot->getEndEffPositionRef(), "Position");
-   stateLogger.add(robot->getEndEffVelocityRef(), "Velocity");
-   stateLogger.add(robot->getInteractionForceRef(), "Force");
-   //
-   stateLogger.add(Verror,"velocity_error");
-   //
-   stateLogger.add((M(0,0),M(1,1)), "Virutal_mass");
-   stateLogger.add((Md(0,0),Md(1,1)),"Desired_mass");
-   stateLogger.add((B(0,0),B(1,1)),"Virutal_damping");
-   stateLogger.add((Bd(0,0),Bd(1,1)),"Desired_damping");
-   //
-   stateLogger.add(Eobs,"Observed_Energy");
-   stateLogger.startLogger();
+    stateLogger.initLogger("M2Admittance2State", "logs/M2Admittance2State.csv", LogFormat::CSV, true);
+    stateLogger.add(elapsedTime, "Time (s)");
+    stateLogger.add(robot->getEndEffPositionRef(), "Position");
+    stateLogger.add(robot->getEndEffVelocityRef(), "Velocity");
+    stateLogger.add(robot->getInteractionForceRef(), "Force");
+    //
+    stateLogger.add(V_error,"Velocity_error");
+    //
+    stateLogger.add((M(0,0),M(1,1)), "Virtual_mass");
+    stateLogger.add((B(0,0),B(1,1)), "Virtual_damping");
+    //
+    stateLogger.add(E_obs, "Observed_Energy");
+    stateLogger.startLogger();
 }
 
 void M2Admittance2::duringCode(void) {
-    //Eigen::Matrix2d B;
-    //Eigen::Matrix2d M;
-    //Eigen::Matrix2d Operator;
-    //double PO_x, PO_y, gain_x =1.0, gain_y=1.0, alpha_x =0.2, alpha_y=0.2;
-    //VM2 X, dX, Fm, Vd;
     //get robot position and velocity and force mesaure
-
     X = robot->getEndEffPosition();
     dX = robot->getEndEffVelocity();
     Fm = robot->getInteractionForceRef();
 
-    //calculate VE velocity (X,dx)
-    //myVE(X, dX, Fm, M, Operator, dt);
-    if(robot->keyboard->getQ())
-    {
-        Md(1,1)-= 0.1;
-        std::cout <<  Md(1,1) <<std::endl;
+     //Change Virtual Damping
+    if(robot->keyboard->getQ()) {
+        B1(0,0)+=0.1;
+        B1(1,1)+=0.1;
+        std::cout << B1 <<std::endl;
+    }
+    if(robot->keyboard->getA()) {
+        B1(0,0)-=0.1;
+        B1(1,1)-=0.1;
+        std::cout << B1 <<std::endl;
+    }
+    //Change E_class threshold
+    if(robot->keyboard->getW()) {
+        E_upper(0)+=0.1;
+        E_upper(1)+=0.1;
+        E_lower(0)-=0.1;
+        E_lower(1)-=0.1;
+        std::cout << E_upper <<std::endl;
+    }
+    if(robot->keyboard->getS()) {
+        E_upper(0)-=0.1;
+        E_upper(1)-=0.1;
+        E_lower(0)+=0.1;
+        E_lower(1)+=0.1;
+        std::cout << E_upper <<std::endl;
     }
 
-    if(robot->keyboard->getA())
-    {
-        Md(1,1)+= 0.1;
-        std::cout <<  Md(1,1) <<std::endl;
-    }
+    V_error = Vd - dX;
 
-    M(1,1) = Md(1,1);
-    Vd = myVE(X, dX, Fm, B, M, dt);
-
-    Verror = Vd - dX;
-
-    if (i <= ObsvT)
-    {
-    //Eobs = Eobs + myPO_obs(dX, Fm, dt);
-        Eobs = Eobs + myPOobs(dX, Fm, dt)*dt;
+    if (i < Obsv_T) {
+        E_obs = E_obs + myPOobs(dX, Fm, dt)*dt;
         i += 1;
-        if (Eobs(0) >= Eu(0)){Eobs(0) = Eu(0);}
-        if (Eobs(0) <= El(0)){Eobs(0) = El(0);}
-        else{Eobs(0)=Eobs(0);}
-        if (Eobs(1) >= Eu(1)){Eobs(1) = Eu(1);}
-        if (Eobs(1) <= El(1)){Eobs(1) = El(1);}
-        else{Eobs(0)=Eobs(0);}
     }
-    if (i > ObsvT)
-    {
+    if (i >= Obsv_T) {
         i = 0;
-        Eobs(VM2::Zero());
+        E_obs(VM2::Zero());
         std::cout << "A2 PO is reseted" << std::endl;
     }
 
-    if(iterations%100==1)
-    {
-        robot->printStatus();
-        std::cout << Eobs.transpose() << std::endl;
+    if(iterations%10==1) {
+        //robot->printStatus();
+        std::cout << "Energy=[ " << E_obs.transpose() << " ]\t" ;
+        std::cout << "Damping_x=[ " << B(0,0) << " ]\t" ;
+        std::cout << "Damping_y=[ " << B(1,1) << " ]\t" <<std::endl;
     }
 
+    if (E_obs(0) <= E_lower(0)) {
+        B(0,0) = B2(0,0);
+    }
+    if (E_obs(0) >= E_upper(0)) {
+        B(0,0) = B1(0,0);
+    }
+    else {
+        B(0,0) = B(0,0);
+    }
 
+    if (E_obs(1) <= E_lower(1)) {
+        B(1,1) = B2(1,1);
+    }
+    if (E_obs(1) >= E_upper(1)) {
+        B(1,1) = B1(1,1);
+    }
+    else {
+        B(1,1) = B(1,1);
+    }
 
-    POx = Eobs(0);
-    POy = Eobs(1);
+    B(0,0) = max(B(0,0), 0.01);
+    B(1,1) = max(B(1,1), 0.01);
 
-    if (POx <= El(0)){M(0,0) = 5;}
-    if (POx >= Eu(0)){M(0,0) = Md(0,0);}
-    else{M(0,0) = M(0,0);}
-    //Vd(0) = gainx * Vd(0);
-
-    if (POy <= El(1)){M(1,1) = 5;}
-    if (POy >= Eu(1)){M(1,1) = Md(1,1);}
-    else{M(1,1) = M(1,1);}
-
-    M(0,0) = max(M(0,0),0.01);
-    M(1,1) = max(M(1,1),0.01);
-    //Vd(1) = gainy * Vd(1);
     Vd = myVE(X, dX, Fm, B, M, dt);
     //apply velocity
-    //robot->setEndEffVelocity();
     robot->setEndEffVelocity(Vd);
     //
     stateLogger.recordLogData();

@@ -222,18 +222,19 @@ class M2Admittance2: public M2TimedState {
 
    private:
     LogHelper stateLogger;
-    VM2 Eobs;
+
+    VM2 E_obs;
     Eigen::Matrix2d B, Bd;
     Eigen::Matrix2d M, Md;
     Eigen::Matrix2d Operator;
-    VM2 X;
-    VM2 dX, Verror;
+    Eigen::Matrix2d B1, B2;
+
+    VM2 X, dX;
+    VM2 V_error;
     VM2 Fm;
     VM2 Vd;
-    //VM2 LogM, LogMd, LogB, LogBd;
-    VM2 Eu, El;
-    int ObsvT, ObsvTx, ObsvTy, i;
-    double POx, POy, gainx, gainy, alphax, alphay;
+    VM2 E_upper, E_lower;
+    int Obsv_T, i;
 };
 
 
