@@ -211,8 +211,8 @@ void M2Admittance1::entryCode(void) {
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
     M(0,0)=M(1,1)= 1.0;
-    B1(0,0)=B1(1,1)= 1.0;
-    B2(0,0)=B2(1,1)= 15.0;
+    B1(0,0)=B1(1,1)= 2.0;
+    B2(0,0)=B2(1,1)= 20.0;
 
     B(0,0)=B1(0,0);
     B(1,1)=B1(1,1);
@@ -223,7 +223,7 @@ void M2Admittance1::entryCode(void) {
     Obsv_T = 1000;
     i = 0;
 
-    E_class(0) = E_class(1) = 0.5;
+    E_class(0) = E_class(1) = 2;
     //E_lower(0) = E_lower(1) = -2;
     //E_upper(0) = E_upper(1) = 2;
 
@@ -301,13 +301,14 @@ void M2Admittance1::duringCode(void) {
     if (E_obs(1) <= E_class(1)) {
         B(1,1) = B2(1,1);
     }
-    else B(1,1) = B2(1,1);
+    else B(1,1) = B1(1,1);
 
     Vd = myVE(X, dX, Fm, B, M, dt);
-    if(iterations%10==1) {
+    if(iterations%100==1) {
         //robot->printStatus();
-        std::cout << "Energy=[ " << E_obs.transpose() << " ]\t" << std::endl;
-        std::cout << "Damping=[ " << E_obs.transpose() << " ]\t" << std::endl;
+        std::cout << "Energy=[ " << E_obs.transpose() << " ]\t" ;
+        std::cout << "Damping_x=[ " << B(0,0) << " ]\t" ;
+        std::cout << "Damping_y=[ " << B(1,1) << " ]\t" <<std::endl;
     }
     //apply velocity
     robot->setEndEffVelocity(Vd);
