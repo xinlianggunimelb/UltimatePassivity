@@ -211,7 +211,7 @@ void M2Admittance1::entryCode(void) {
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
     M(0,0) = M(1,1) = 1.0;
-    B1(0,0) = B1(1,1) = 1.2;
+    B1(0,0) = B1(1,1) = 3.0;
     B2(0,0) = B2(1,1) = 20.0;
 
     B(0,0) = B1(0,0);
@@ -223,7 +223,7 @@ void M2Admittance1::entryCode(void) {
     Obsv_T = 1000;
     i = 0;
 
-    E_class(0) = E_class(1) = 2.0;
+    E_class(0) = E_class(1) = 1.0;
     //E_lower(0) = E_lower(1) = -2;
     //E_upper(0) = E_upper(1) = 2;
     alpha(0) = alpha(1) = 30000;
@@ -280,7 +280,6 @@ void M2Admittance1::duringCode(void) {
         std::cout << E_class <<std::endl;
     }
 
-
     V_error = Vd - dX;
     P_error = myPOerror(dX,Vd,Fm,dt)*dt;
 
@@ -295,7 +294,7 @@ void M2Admittance1::duringCode(void) {
         std::cout << "PO is reseted" << std::endl;
     }
 
-    if(iterations%100==1) {
+    if(iterations%10==1) {
     //if(1) {
         //robot->printStatus();
         std::cout << "i=[ " << i << " ]\t" ;
