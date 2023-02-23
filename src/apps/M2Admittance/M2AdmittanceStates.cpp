@@ -211,7 +211,7 @@ void M2Admittance1::entryCode(void) {
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
     M(0,0) = M(1,1) = 1.0;
-    B1(0,0) = B1(1,1) = 2.0;
+    B1(0,0) = B1(1,1) = 1.2;
     B2(0,0) = B2(1,1) = 20.0;
 
     B(0,0) = B1(0,0);
@@ -223,16 +223,17 @@ void M2Admittance1::entryCode(void) {
     Obsv_T = 1000;
     i = 0;
 
-    E_class(0) = E_class(1) = 2;
+    E_class(0) = E_class(1) = 2.0;
     //E_lower(0) = E_lower(1) = -2;
     //E_upper(0) = E_upper(1) = 2;
+    alpha(0) = alpha(1) = 30000;
 
     X(VM2::Zero());
     dX(VM2::Zero());
     Fm(VM2::Zero());
     Vd(VM2::Zero());
     V_error(VM2::Zero());
-    Power(VM2::Zero());
+    P_error(VM2::Zero());
 
     stateLogger.initLogger("M2Admittance1State", "logs/M2Admittance1State.csv", LogFormat::CSV, true);
     stateLogger.add(elapsedTime, "Time (s)");
@@ -241,12 +242,11 @@ void M2Admittance1::entryCode(void) {
     stateLogger.add(robot->getInteractionForceRef(), "Force");
     stateLogger.add(E_obs, "Observed_Energy");
     stateLogger.add(V_error, "Velocity_error");
-    stateLogger.add(Power, "Power_PO");
-    //
-    stateLogger.add((M(0,0),M(1,1)), "Virtual_mass");
+    stateLogger.add(P_error, "Power_PO");
+    //stateLogger.add((M(0,0),M(1,1)), "Virtual_mass");
     //stateLogger.add((Md(0,0),Md(1,1)),"Desired_mass");
-    stateLogger.add((B(0,0),B(1,1)), "Virtual_damping");
-    //stateLogger.add((Bd(0,0),Bd(1,1)),"Desired_damping");
+    stateLogger.add(B(0,0), "Virtual_damping_X");
+    stateLogger.add(B(1,1), "Virtual_damping_Y");
     stateLogger.startLogger();
 }
 
@@ -282,7 +282,7 @@ void M2Admittance1::duringCode(void) {
 
 
     V_error = Vd - dX;
-    Power = myPOerror(dX,Vd,Fm,dt)*dt;
+    P_error = myPOerror(dX,Vd,Fm,dt)*dt;
 
     if (i < Obsv_T) {
         E_obs = E_obs + myPOobs(dX, Fm, dt)*dt;
@@ -290,24 +290,29 @@ void M2Admittance1::duringCode(void) {
     }
     if (i >= Obsv_T) {
         i = 0;
-        E_obs(VM2::Zero());
-        std::cout << "A2 PO is reseted" << std::endl;
+        //E_obs(VM2::Zero());
+        E_obs(0) = E_obs(1) = 0;
+        std::cout << "PO is reseted" << std::endl;
     }
 
-    if(iterations%10==1) {
+    if(iterations%100==1) {
+    //if(1) {
         //robot->printStatus();
+        std::cout << "i=[ " << i << " ]\t" ;
         std::cout << "Energy=[ " << E_obs.transpose() << " ]\t" ;
-        std::cout << "Damping_x=[ " << B(0,0) << " ]\t" ;
-        std::cout << "Damping_y=[ " << B(1,1) << " ]\t" <<std::endl;
+        std::cout << "Damping_X=[ " << B(0,0) << " ]\t" ;
+        std::cout << "Damping_Y=[ " << B(1,1) << " ]\t" <<std::endl;
     }
 
     //E_class triggered
     if (E_obs(0) <= E_class(0)) {
-        B(0,0) = B2(0,0);
+        //B(0,0) = B2(0,0);
+        B(0,0) = B1(0,0) + alpha(0)*abs(P_error(0))*sign(P_error(0));
     }
     else B(0,0) = B1(0,0);
     if (E_obs(1) <= E_class(1)) {
-        B(1,1) = B2(1,1);
+        //B(1,1) = B2(1,1);
+        B(1,1) = B1(1,1) + alpha(1)*abs(P_error(1))*sign(P_error(1));
     }
     else B(1,1) = B1(1,1);
 
@@ -358,13 +363,11 @@ void M2Admittance2::entryCode(void) {
     stateLogger.add(robot->getEndEffPositionRef(), "Position");
     stateLogger.add(robot->getEndEffVelocityRef(), "Velocity");
     stateLogger.add(robot->getInteractionForceRef(), "Force");
-    //
-    stateLogger.add(V_error,"Velocity_error");
-    //
-    stateLogger.add((M(0,0),M(1,1)), "Virtual_mass");
-    stateLogger.add((B(0,0),B(1,1)), "Virtual_damping");
-    //
     stateLogger.add(E_obs, "Observed_Energy");
+    stateLogger.add(V_error,"Velocity_error");
+    //stateLogger.add((M(0,0),M(1,1)), "Virtual_mass");
+    stateLogger.add(B(0,0), "Virtual_damping_X");
+    stateLogger.add(B(1,1), "Virtual_damping_Y");
     stateLogger.startLogger();
 }
 
@@ -409,8 +412,9 @@ void M2Admittance2::duringCode(void) {
     }
     if (i >= Obsv_T) {
         i = 0;
-        E_obs(VM2::Zero());
-        std::cout << "A2 PO is reseted" << std::endl;
+        //E_obs(VM2::Zero());
+        E_obs(0) = E_obs(1) = 0;
+        std::cout << "PO is reseted" << std::endl;
     }
 
     if(iterations%10==1) {
@@ -533,7 +537,7 @@ void M2Admittance3::duringCode(void) {
      dX = robot->getEndEffVelocity();
      Fm = robot->getInteractionForceRef();
 
-    Vd = myVE(X, dX, Fm, B, M, dt);
+    //Vd = myVE(X, dX, Fm, B, M, dt);
 
 
      if (i <= Obsv_T)
@@ -559,6 +563,9 @@ void M2Admittance3::duringCode(void) {
      {
         robot->printStatus();
         std::cout << Eobs.transpose() << std::endl;
+             int a=0, b=-10;
+     std::cout << sign(a) << std::endl;
+     std::cout << sign(b) << std::endl;
      }
 
     PO_x = Eobs(0);
@@ -591,12 +598,12 @@ void M2Admittance3::duringCode(void) {
     }
      //M(0,0) =  max(Md(0,0), 0.1);
      //M(1,1) =  max(Md(1,1), 0.1);
-    Vd = myVE(X, dX, Fm, B, M, dt);
+    //Vd = myVE(X, dX, Fm, B, M, dt);
 
     //Vd(1) = gain_y * Vd(1);
     //apply velocity
     //robot->setEndEffVelocity();
-    robot->setEndEffVelocity(Vd);
+    robot->setEndEffVelocity(VM2::Zero());
     stateLogger.recordLogData();
 }
 

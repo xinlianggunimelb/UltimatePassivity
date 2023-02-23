@@ -198,10 +198,11 @@ class M2Admittance1: public M2TimedState {
     Eigen::Matrix2d B1, B2;
 
     VM2 X, dX;
-    VM2 V_error, Power;
+    VM2 V_error, P_error;
     VM2 Fm;
     VM2 Vd;
     VM2 E_class;
+    VM2 alpha;
     int Obsv_T;
     int i;
 };
