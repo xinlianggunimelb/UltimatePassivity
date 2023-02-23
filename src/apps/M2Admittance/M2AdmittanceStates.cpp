@@ -562,9 +562,6 @@ void M2Admittance3::duringCode(void) {
      {
         robot->printStatus();
         std::cout << Eobs.transpose() << std::endl;
-             int a=0, b=-10;
-     std::cout << sign(a) << std::endl;
-     std::cout << sign(b) << std::endl;
      }
 
     PO_x = Eobs(0);
@@ -597,7 +594,7 @@ void M2Admittance3::duringCode(void) {
     }
      //M(0,0) =  max(Md(0,0), 0.1);
      //M(1,1) =  max(Md(1,1), 0.1);
-    //Vd = myVE(X, dX, Fm, B, M, dt);
+    Vd = myVE(X, dX, Fm, B, M, dt);
 
     //Vd(1) = gain_y * Vd(1);
     //apply velocity
