@@ -239,35 +239,4 @@ class M2Admittance2: public M2TimedState {
 };
 
 
-/**
- * \brief Admittance Lawrence algo 3
- *
- */
-class M2Admittance3: public M2TimedState {
-
-   public:
-    M2Admittance3(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance 3"):M2TimedState(m, M2, name){};
-
-    void entryCode(void);
-    void duringCode(void);
-    void exitCode(void);
-
-   private:
-   //Eigen::Matrix2d B;
-   //Eigen::Matrix2d M;
-   //Eigen::Matrix2d Operator;
-    LogHelper stateLogger;
-    VM2 Eobs;
-    Eigen::Matrix2d B, Bd;
-    Eigen::Matrix2d M, Md;
-    Eigen::Matrix2d Operator;
-    VM2 X;
-    VM2 dX;
-    VM2 Fm;
-    VM2 Vd;
-    VM2 Del, Eu, El, Power;
-    int Obsv_T, Obsv_Tx, Obsv_Ty, i;
-    double PO_x, PO_y, gain_x, gain_y, alpha_x, alpha_y;
-};
-
 #endif

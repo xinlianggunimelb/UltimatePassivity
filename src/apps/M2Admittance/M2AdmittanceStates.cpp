@@ -53,14 +53,14 @@ VM2 myPOref(VM2 Ve, VM2 Fm, double dt)
     return Eref;
 }
 
-VM2 myPOerror(VM2 Vm, VM2 Ve, VM2 Fm, double dt)
+VM2 myPOerror(VM2 Vm, VM2 Vd, VM2 Fm, double dt)
 {
    VM2 Pref;
    VM2 Pobs;
    VM2 Pdev;
 
    Pobs = Vm.cwiseProduct(Fm);
-   Pref = Ve.cwiseProduct(Fm);
+   Pref = Vd.cwiseProduct(Fm);
    Pdev = Pref - Pobs;
    return Pdev;
 }
@@ -220,13 +220,13 @@ void M2Admittance1::entryCode(void) {
     E_obs(0) = 0.0;
     E_obs(1) = 0.0;
 
-    Obsv_T = 1000;
+    Obsv_T = 10000000;
     i = 0;
 
-    E_class(0) = E_class(1) = 1.0;
+    E_class(0) = E_class(1) = 1.7;
     //E_lower(0) = E_lower(1) = -2;
     //E_upper(0) = E_upper(1) = 2;
-    alpha(0) = alpha(1) = 30000;
+    alpha(0) = alpha(1) = 20000;
 
     X(VM2::Zero());
     dX(VM2::Zero());
@@ -307,11 +307,13 @@ void M2Admittance1::duringCode(void) {
     if (E_obs(0) <= E_class(0)) {
         //B(0,0) = B2(0,0);
         B(0,0) = B1(0,0) + alpha(0)*abs(P_error(0))*sign(P_error(0));
+        B(0,0) = max(B(0,0), B1(0,0));
     }
     else B(0,0) = B1(0,0);
     if (E_obs(1) <= E_class(1)) {
         //B(1,1) = B2(1,1);
         B(1,1) = B1(1,1) + alpha(1)*abs(P_error(1))*sign(P_error(1));
+        B(1,1) = max(B(1,1), B1(1,1));
     }
     else B(1,1) = B1(1,1);
 
@@ -345,7 +347,7 @@ void M2Admittance2::entryCode(void) {
     E_obs(0) = 0.0;
     E_obs(1) = 0.0;
 
-    Obsv_T = 1000;
+    Obsv_T = 10000000;
     i = 0;
 
     X(VM2::Zero());
@@ -457,152 +459,3 @@ void M2Admittance2::exitCode(void) {
     robot->setJointVelocity(VM2::Zero());
 }
 
-
-//Classic PO
-void M2Admittance3::entryCode(void) {
-    //Setup velocity control for position over velocity loop
-    //robot->initVelocityControl();
-    //robot->setJointVelocity(VM2::Zero());
-    //M(0,0)=M(1,1)=10.0;
-    //B(0,0)=B(1,1)=10.0;
-
-    robot->initVelocityControl();
-    robot->setJointVelocity(VM2::Zero());
-
-    M(0,0)=M(1,1)=Md(0,0)=Md(1,1)= 0.5;
-    B(0,0)=B(1,1)=Bd(0,0)=Bd(1,1)= 2.0;
-
-    Eobs(0) = 0.0;
-    Eobs(1) = 0.0;
-
-    X(VM2::Zero());
-    dX(VM2::Zero());
-    Fm(VM2::Zero());
-    Vd(VM2::Zero());
-    Power(VM2::Zero());
-
-    PO_x = 0.0;
-    PO_y = 0.0;
-
-    gain_x = 1.0;
-    gain_y = 1.0;
-
-    alpha_x = 5;
-    alpha_y = 5;
-
-    Obsv_T = 100;
-    i = 1;
-
-    Del(0) = Del(1) = 0.8;
-    El(0) = El(1) = -0.5;
-    Eu(0) = Eu(1) = 0.5;
-
-    //Obsv_Tx = 100;
-    //Obsv_Ty = 100;
-    stateLogger.initLogger("M2Admittance3State", "logs/M2Admittance3State.csv", LogFormat::CSV, true);
-    stateLogger.add(elapsedTime, "Time (s)");
-    stateLogger.add(robot->getEndEffPositionRef(), "Position");
-    stateLogger.add(robot->getEndEffVelocityRef(), "Velocity");
-    stateLogger.add(robot->getInteractionForceRef(), "Force");
-    stateLogger.add((M(0,0),M(1,1)), "Virutal_mass");
-    stateLogger.add((Md(0,0),Md(1,1)),"Desired_mass");
-    stateLogger.add((B(0,0),B(1,1)),"Virutal_damping");
-    stateLogger.add((Bd(0,0),Bd(1,1)),"Desired_damping");
-    stateLogger.add(Eobs,"Observed_Energy");
-    //
-    stateLogger.startLogger();
-}
-
-void M2Admittance3::duringCode(void) {
-    VM2 X, dX, Fm, Vd;
-    // Eigen::Matrix2d B;
-    // Eigen::Matrix2d M;
-    // Eigen::Matrix2d Operator;
-    // get robot position and velocity and force mesaure
-
-    // X = robot->getEndEffPosition();
-    // dX = robot->getEndEffVelocity();
-    // Fm = robot->getInteractionForceRef();
-
-    // calculate VE velocity (X,dx)
-    // myVE(X, dX, Fm, M, Operator, dt);
-    // Vd = myVE(X, dX, Fm, B, M, dt);
-
-    // apply velocity
-    // robot->setEndEffVelocity();
-    // robot->setEndEffVelocity(Vd);
-
-     X = robot->getEndEffPosition();
-     dX = robot->getEndEffVelocity();
-     Fm = robot->getInteractionForceRef();
-
-    //Vd = myVE(X, dX, Fm, B, M, dt);
-
-
-     if (i <= Obsv_T)
-    {
-    //Eobs = Eobs + myPOobs(dX, Fm, dt);
-     Eobs = Eobs + myPOobs(dX, Fm, dt)*dt;
-     i += 1;
-     if (Eobs(0) >= Eu(0)){Eobs(0) = Eu(0);}
-     if (Eobs(0) <= El(0)){Eobs(0) = El(0);}
-     else{Eobs(0)=Eobs(0);}
-     if (Eobs(1) >= Eu(1)){Eobs(1) = Eu(1);}
-     if (Eobs(1) <= El(1)){Eobs(1) = El(1);}
-     else{Eobs(0)=Eobs(0);}
-    }
-    if (i > Obsv_T)
-    {
-     i = 0;
-     Eobs(VM2::Zero());
-     std::cout << "A2 PO is reseted" << std::endl;
-    }
-  //myPOobs
-     if(iterations%100==1)
-     {
-        robot->printStatus();
-        std::cout << Eobs.transpose() << std::endl;
-     }
-
-    PO_x = Eobs(0);
-    PO_y = Eobs(1);
-
-    Power = myPOerror(dX, Vd, Fm, dt);
-
-    //if (abs(PO_x) > Del(0)*abs(Vd(0)-dX(0)))
-    if (PO_x <= El(0))
-    {
-      M(0,0) = M(0,0) - alpha_x*abs(Power(0))*sign(Power(0));
-      M(0,0) = max(M(0,0), 0.1);
-    }
-    //if (abs(PO_x) <= Del(0)*abs(Vd(0)-dX(0)))
-    if (PO_x >= Eu(0))
-    {M(0,0) =  max(Md(1,1), 0.1);}
-    //Vd(0) = gain_x * Vd(0);
-
-    //if (abs(PO_y) > Del(1)*abs(Vd(1)-dX(1)))
-    if (PO_y <= El(1))
-    {
-      M(1,1) = M(1,1) - alpha_y*abs(Power(1))*sign(Power(1));
-      M(1,1) = max(Md(1,1), 0.1);
-    }
-    //if (abs(PO_y) <= Del(1)*abs(Vd(1)-dX(1)))
-    if (PO_y >= Eu(1))
-    {
-       //M(1,1) = M(1,1) - alpha_y*sign(PO_y);
-      M(1,1) =  max(Md(1,1), 0.1);
-    }
-     //M(0,0) =  max(Md(0,0), 0.1);
-     //M(1,1) =  max(Md(1,1), 0.1);
-    Vd = myVE(X, dX, Fm, B, M, dt);
-
-    //Vd(1) = gain_y * Vd(1);
-    //apply velocity
-    //robot->setEndEffVelocity();
-    robot->setEndEffVelocity(VM2::Zero());
-    stateLogger.recordLogData();
-}
-
-void M2Admittance3::exitCode(void) {
-    robot->setJointVelocity(VM2::Zero());
-}
