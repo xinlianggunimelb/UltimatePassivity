@@ -191,20 +191,20 @@ class M2Admittance1: public M2TimedState {
    private:
     LogHelper stateLogger;
 
-    VM2 E_obs;
+    VM2 E_obs, E_obs_ls;
     Eigen::Matrix2d B;
     Eigen::Matrix2d M;
     Eigen::Matrix2d Operator;
-    Eigen::Matrix2d B1, B2;
+    //Eigen::Matrix2d B1, B2;
+    Eigen::Matrix2d C_diss, C_diss_ls;
 
     VM2 X, dX;
-    VM2 V_error, P_error;
-    VM2 Fm;
-    VM2 Vd;
-    VM2 E_class;
-    VM2 alpha;
-    int Obsv_T;
-    int i;
+    //VM2 V_error, P_error;
+    VM2 Fm, Fm_ls;
+    VM2 Vd, V_ve, V_diss;
+    VM2 E_class, E_class_dyn, E_diss;
+    //VM2 alpha;
+    int Obsv_T, i;
 };
 
 
@@ -224,16 +224,17 @@ class M2Admittance2: public M2TimedState {
    private:
     LogHelper stateLogger;
 
-    VM2 E_obs;
-    Eigen::Matrix2d B, Bd;
-    Eigen::Matrix2d M, Md;
+    VM2 E_obs, E_obs_ls;
+    Eigen::Matrix2d B;
+    Eigen::Matrix2d M;
     Eigen::Matrix2d Operator;
     Eigen::Matrix2d B1, B2;
+    Eigen::Matrix2d C_diss, C_diss_ls;
 
     VM2 X, dX;
-    VM2 V_error;
-    VM2 Fm;
-    VM2 Vd;
+    //VM2 V_error;
+    VM2 Fm, Fm_ls;
+    VM2 Vd, V_ve, V_diss;
     VM2 E_upper, E_lower;
     int Obsv_T, i;
 };
