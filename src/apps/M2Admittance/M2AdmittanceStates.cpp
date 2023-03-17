@@ -222,7 +222,7 @@ void M2Admittance1::entryCode(void) {
     robot->setJointVelocity(VM2::Zero());
     //Virtual Environment
     M(0,0) = M(1,1) = 1.0;
-    B(0,0) = B(1,1) = 0.10;
+    B(0,0) = B(1,1) = 1.0;
     //B1(0,0) = B1(1,1) = 3.0;
     //Damper for dissipation
     C_diss(0,0) = C_diss(1,1) = 0.0;
@@ -355,8 +355,6 @@ void M2Admittance1::duringCode(void) {
     V_diss(1) = C_diss(1,1)*Fm(1);
     Vd = V_ve + V_diss;
     Vd(1) = 0.0; //lock y axis
-    //apply velocity
-    robot->setEndEffVelocity(Vd);
 
     E_obs_ls = E_obs;
     Fm_ls = Fm;
@@ -376,6 +374,9 @@ void M2Admittance1::duringCode(void) {
         std::cout << "V_diss=[ " << V_diss.transpose() << " ]\t" ;
         std::cout << "C_X=[ " << C_diss(0,0) << " ]\t" <<std::endl;
     }
+
+    //apply velocity
+    robot->setEndEffVelocity(Vd);
 }
 
 void M2Admittance1::exitCode(void) {
