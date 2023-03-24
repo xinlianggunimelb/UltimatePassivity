@@ -42,7 +42,7 @@ VM2 myVE(VM2 X, VM2 dX, VM2 Fm, Eigen::Matrix2d B, Eigen::Matrix2d M, double dt)
 VM2 PsvObsv(VM2 E_obs_ls, VM2 Fm, VM2 Fm_ls, VM2 V_ve, Eigen::Matrix2d C_diss_ls, double dt)
 {
     VM2 E_obs;
-    E_obs = E_obs_ls + V_ve.cwiseProduct(Fm)*dt + C_diss_ls*Fm_ls.cwiseProduct(Fm_ls);
+    E_obs = E_obs_ls + V_ve.cwiseProduct(Fm)*dt + C_diss_ls*Fm_ls.cwiseProduct(Fm_ls)*dt;
     return E_obs;
 }
 
@@ -221,8 +221,8 @@ void M2Admittance1::entryCode(void) {
     robot->initVelocityControl();
     robot->setJointVelocity(VM2::Zero());
     //Virtual Environment
-    M(0,0) = M(1,1) = 1.0;
-    B(0,0) = B(1,1) = 1.0;
+    M(0,0) = M(1,1) = 0.2;
+    B(0,0) = B(1,1) = 0.1;
     //B1(0,0) = B1(1,1) = 3.0;
     //Damper for dissipation
     C_diss(0,0) = C_diss(1,1) = 0.0;
@@ -307,8 +307,8 @@ void M2Admittance1::duringCode(void) {
     // Passivity Observer
     if (i < Obsv_T) {
         //E_obs = E_obs + myPOobs(dX, Fm, dt)*dt;
-        //E_obs = PsvObsv(E_obs_ls, Fm, Fm_ls, V_ve, C_diss_ls, dt);
-        E_obs = PsvObsvSimple(E_obs_ls, Fm, dX, dt);
+        E_obs = PsvObsv(E_obs_ls, Fm, Fm_ls, V_ve, C_diss_ls, dt);
+        //E_obs = PsvObsvSimple(E_obs_ls, Fm, dX, dt);
         i += 1;
     }
     if (i >= Obsv_T) {
