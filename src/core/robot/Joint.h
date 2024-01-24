@@ -29,6 +29,7 @@ enum setMovementReturnCode_t {
     OUTSIDE_LIMITS = -1,
     INCORRECT_MODE = -2,
     NOT_CALIBRATED = -3,
+    INVALID_VALUE = -4,
     UNACTUATED_JOINT = -99,
     UNKNOWN_ERROR = -100
 };
@@ -39,6 +40,7 @@ enum setMovementReturnCode_t {
 static std::map<setMovementReturnCode_t, std::string> setMovementReturnCodeString = {
     {SUCCESS, "Ok."},
     {OUTSIDE_LIMITS, "Outside of limits."},
+    {INVALID_VALUE, "Invalid value (inf, nan)"},
     {INCORRECT_MODE, "Incorrect drive mode"},
     {NOT_CALIBRATED, "Not calibrated."},
     {UNKNOWN_ERROR, "Unknown error."}
@@ -444,7 +446,7 @@ class Joint {
 
     /**
      * \brief Sets the drive of this joint to be in continous position profile mode (or not)
-     * 
+     *
      * \param continuous True if continuous mode is required, false if not
      *
      * \return true if succesful

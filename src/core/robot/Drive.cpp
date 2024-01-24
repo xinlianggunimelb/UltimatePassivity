@@ -435,7 +435,8 @@ std::vector<std::string> Drive::generateVelControlConfigSDO(motorProfile velocit
     CANCommands.push_back(sstream.str());
     sstream.str(std::string());
     //enable profile Velocity mode
-    sstream << "[1] " << NodeID << " write 0x6060 0 i8 3";
+    //sstream << "[1] " << NodeID << " write 0x6060 0 i8 3";
+    sstream << "[1] " << NodeID << " write 0x6060 0 i8 -3";
     CANCommands.push_back(sstream.str());
     sstream.str(std::string());
 
@@ -461,7 +462,8 @@ std::vector<std::string> Drive::generateVelControlConfigSDO() {
     CANCommands.push_back(sstream.str());
     sstream.str(std::string());
     //enable profile Velocity mode
-    sstream << "[1] " << NodeID << " write 0x6060 0 i8 3";
+    //sstream << "[1] " << NodeID << " write 0x6060 0 i8 3";
+    sstream << "[1] " << NodeID << " write 0x6060 0 i8 -3";
     CANCommands.push_back(sstream.str());
     sstream.str(std::string());
 

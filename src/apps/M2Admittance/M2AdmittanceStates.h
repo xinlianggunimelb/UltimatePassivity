@@ -144,8 +144,11 @@ class M2Transparent : public M2TimedState {
     void duringCode(void);
     void exitCode(void);
 
+    LogHelper stateLogger;
    private:
-    Eigen::Matrix2d ForceP;
+    VM2 dXd;
+    VM2 Fd;
+    double amplitude = 0;
 };
 
 
@@ -176,13 +179,13 @@ class M2MinJerkPosition: public M2TimedState {
 
 
 /**
- * \brief Admittance Lawrence algo 1
+ * \brief Admittance 1 PO Only
  *
  */
 class M2Admittance1: public M2TimedState {
 
    public:
-    M2Admittance1(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance 1"):M2TimedState(m, M2, name){};
+    M2Admittance1(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance PO Only"):M2TimedState(m, M2, name){};
 
     void entryCode(void);
     void duringCode(void);
@@ -191,7 +194,7 @@ class M2Admittance1: public M2TimedState {
    private:
     LogHelper stateLogger;
 
-    VM2 E_obs, E_obs_ls;
+    VM2 E_obs, E_obs_ls, E_obs_prediction;
     Eigen::Matrix2d B;
     Eigen::Matrix2d M;
     Eigen::Matrix2d Operator;
@@ -199,23 +202,23 @@ class M2Admittance1: public M2TimedState {
     Eigen::Matrix2d C_diss, C_diss_ls;
 
     VM2 X, dX;
-    //VM2 V_error, P_error;
-    VM2 Fm, Fm_ls;
+    VM2 Fs, Fs_ls;
     VM2 Vd, V_ve, V_diss;
     VM2 E_class, E_class_dyn, E_diss;
-    //VM2 alpha;
     int Obsv_T, i;
+
+    double limit;
 };
 
 
 /**
- * \brief Admittance Lawrence algo 2
+ * \brief Admittance 2 POPC
  *
  */
 class M2Admittance2: public M2TimedState {
 
    public:
-    M2Admittance2(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance 2"):M2TimedState(m, M2, name){};
+    M2Admittance2(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance POPC"):M2TimedState(m, M2, name){};
 
     void entryCode(void);
     void duringCode(void);
@@ -224,7 +227,40 @@ class M2Admittance2: public M2TimedState {
    private:
     LogHelper stateLogger;
 
-    VM2 E_obs, E_obs_ls;
+    VM2 E_obs, E_obs_ls, E_obs_prediction;
+    Eigen::Matrix2d B;
+    Eigen::Matrix2d M;
+    Eigen::Matrix2d Operator;
+    //Eigen::Matrix2d B1, B2;
+    Eigen::Matrix2d C_diss, C_diss_ls;
+
+    VM2 X, dX;
+    VM2 Fs, Fs_ls;
+    VM2 Vd, V_ve, V_diss;
+    VM2 E_class, E_class_dyn, E_diss;
+    int Obsv_T, i;
+
+    double limit;
+};
+
+
+/**
+ * \brief Admittance 3 UPC
+ *
+ */
+class M2Admittance3: public M2TimedState {
+
+   public:
+    M2Admittance3(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance UPC"):M2TimedState(m, M2, name){};
+
+    void entryCode(void);
+    void duringCode(void);
+    void exitCode(void);
+
+   private:
+    LogHelper stateLogger;
+
+    VM2 E_obs, E_obs_ls, E_obs_prediction;
     Eigen::Matrix2d B;
     Eigen::Matrix2d M;
     Eigen::Matrix2d Operator;
@@ -233,11 +269,53 @@ class M2Admittance2: public M2TimedState {
 
     VM2 X, dX;
     //VM2 V_error;
-    VM2 Fm, Fm_ls;
+    VM2 Fs, Fs_ls;
     VM2 Vd, V_ve, V_diss;
     VM2 E_upper, E_lower;
     int Obsv_T, i;
+
+    double limit;
 };
 
+
+/**
+ * \brief Admittance 4 CORC-PID
+ *
+ */
+class M2Admittance4: public M2TimedState {
+
+   public:
+    M2Admittance4(StateMachine *m, RobotM2 *M2, const char *name = "M2 Admittance CORC-PID"):M2TimedState(m, M2, name){};
+
+    void entryCode(void);
+    void duringCode(void);
+    void exitCode(void);
+
+   private:
+    LogHelper stateLogger;
+
+    VM2 E_obs, E_obs_ls, E_obs_prediction;
+    Eigen::Matrix2d B;
+    Eigen::Matrix2d M;
+    Eigen::Matrix2d Operator;
+    //Eigen::Matrix2d B1, B2;
+    Eigen::Matrix2d C_diss, C_diss_ls;
+
+    VM2 X, dX;
+    VM2 Fs, Fs_ls;
+    VM2 Vd, V_ve, V_diss;
+    VM2 E_class, E_class_dyn, E_diss;
+    int Obsv_T, i;
+
+    VM2 Fd;
+    VM2 V_error;
+    double k_p;
+    Eigen::Matrix2d Kp;
+    double amplitude;
+
+    VM2 tau_fc;
+    double alpha, beta, threshold;
+    double dq;
+};
 
 #endif

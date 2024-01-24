@@ -62,7 +62,8 @@ class M2Admittance : public StateMachine {
     M2Transparent *standbyState;
     M2Admittance1 *admittance1State;
     M2Admittance2 *admittance2State;
-    //M2Admittance3 *admittance3State;
+    M2Admittance3 *admittance3State;
+    M2Admittance4 *admittance4State;
     M2MinJerkPosition* goToP0State;
 
     AdmittanceTest *STest;
@@ -77,7 +78,8 @@ class M2Admittance : public StateMachine {
     EventObject(EndCalib) * endCalib;
     EventObject(GoToOne) * goToOne;
     EventObject(GoToTwo) * goToTwo;
-    //EventObject(GoToThree) * goToThree;
+    EventObject(GoToThree) * goToThree;
+    EventObject(GoToFour) * goToFour;
     EventObject(GoToNextState) * goToNextState;
     EventObject(GoToPrevState) * goToPrevState;
     EventObject(GoToTransparent) * goToTransparent;

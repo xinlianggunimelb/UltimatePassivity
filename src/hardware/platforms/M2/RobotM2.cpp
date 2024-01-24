@@ -4,7 +4,7 @@ using namespace Eigen;
 
 RobotM2::RobotM2() : Robot(),
                      calibrated(false),
-                     maxEndEffVel(3),
+                     maxEndEffVel(2),
                      maxEndEffForce(150) {
 
     //Define the robot structure: each joint with limits and drive
@@ -405,7 +405,7 @@ setMovementReturnCode_t RobotM2::setEndEffForceWithCompensation(VM2 F, bool fric
     }
     VM2 tau_f(0, 0);                     //Friction compensation torque
     if (friction_comp) {
-        double alpha = 8, beta = 1, threshold = 0.05;
+        double alpha = 3.81, beta = 34.57, threshold = 0.;
         for (unsigned int i = 0; i < joints.size(); i++) {
             double dq = ((JointM2 *)joints[i])->getVelocity();
             if (abs(dq) > threshold) {

@@ -48,10 +48,17 @@ setMovementReturnCode_t JointM2::setVelocity(double dqd) {
         }
     }
     //Caped velocity
-    if (dqd >= dqMin && dqd <= dqMax && std::isfinite(dqd)) {
-        return Joint::setVelocity(dqd);
-    } else {
-        return OUTSIDE_LIMITS;
+    if(std::isfinite(dqd)) {
+        if (dqd >= dqMin && dqd <= dqMax) {
+            return Joint::setVelocity(dqd);
+        }
+        else {
+            Joint::setVelocity(fmax(fmin(dqd, dqMax), dqMin));
+            return OUTSIDE_LIMITS;
+        }
+    }
+    else {
+        return INVALID_VALUE;
     }
 }
 

@@ -12,12 +12,14 @@ M2Admittance::M2Admittance() {
     goToP0State = new M2MinJerkPosition(this, robot); //
     admittance1State = new M2Admittance1(this, robot);
     admittance2State = new M2Admittance2(this, robot);
-    //admittance3State = new M2Admittance3(this, robot);
+    admittance3State = new M2Admittance3(this, robot);
+    admittance4State = new M2Admittance4(this, robot);
 
     endCalib = new EndCalib(this);
     goToOne = new GoToOne(this);
     goToTwo = new GoToTwo(this);
-    //goToThree = new GoToThree(this);
+    goToThree = new GoToThree(this);
+    goToFour = new GoToFour(this);
     goToNextState = new GoToNextState(this);
     goToPrevState = new GoToPrevState(this);
     goToTransparent = new GoToTransparent(this);
@@ -29,12 +31,14 @@ M2Admittance::M2Admittance() {
      *
      */
      NewTransition(calibState, endCalib, goToP0State);
+     NewTransition(goToP0State, goToNextState, standbyState);
      NewTransition(goToP0State, goToOne, admittance1State);
      NewTransition(goToP0State, goToTwo, admittance2State);
-     //NewTransition(goToP0State, goToThree, admittance3State);
+     NewTransition(goToP0State, goToThree, admittance3State);
+     //NewTransition(goToP0State, goToFour, admittance4State);
      NewTransition(admittance1State, goToNextState, goToP0State);
      NewTransition(admittance2State, goToNextState, goToP0State);
-     //NewTransition(admittance3State, goToNextState, goToP0State);
+     NewTransition(admittance3State, goToNextState, goToP0State);
 
     //Initialize the state machine with first state of the designed state machine, using baseclass function.
     StateMachine::initialize(calibState);
@@ -113,7 +117,7 @@ bool M2Admittance::GoToTwo::check() {
     //Otherwise false
     return false;
 }
-/*
+
 bool M2Admittance::GoToThree::check() {
     //keyboard or joystick press
     if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==3 )
@@ -122,7 +126,15 @@ bool M2Admittance::GoToThree::check() {
     //Otherwise false
     return false;
 }
-*/
+
+bool M2Admittance::GoToFour::check() {
+    //keyboard or joystick press
+    if ( OWNER->robot->joystick->isButtonPressed(1) || OWNER->robot->keyboard->getNb()==4 )
+        return true;
+
+    //Otherwise false
+    return false;
+}
 
 bool M2Admittance::GoToNextState::check() {
     //keyboard or joystick press

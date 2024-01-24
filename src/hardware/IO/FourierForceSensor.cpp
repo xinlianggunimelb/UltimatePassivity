@@ -57,6 +57,7 @@ bool FourierForceSensor::calibrate(double calib_time) {
         calibrationOffset = std::accumulate(readingVector.begin(), readingVector.end(), 0.0)/readingVector.size();
         calibrated = true;
         spdlog::debug("[FourierForceSensor::calibrate]: Force Sensor {} succesfully zeroed with offset {}.", sensorNodeID, calibrationOffset);
+        updateInput();
         return true;
     }
 }
